@@ -1,33 +1,28 @@
 import streamlit as st
 
-# 1. ESTO DEBE IR PRIMERO: Configuración de la pestaña
+# 1. Configuración básica
 st.set_page_config(
-    page_title="Embragues Rosario", 
-    page_icon="https://cdn-icons-png.flaticon.com/512/3233/3233917.png", 
+    page_title="Embragues Rosario",
+    page_icon="🚗", 
     layout="centered"
 )
 
-# 2. Truco para el nombre e ícono en el celular
-st.markdown(
-    """
-    <head>
-        <title>Embragues Rosario</title>
-        <meta name="apple-mobile-web-app-title" content="Embragues Rosario">
-        <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3233/3233917.png">
-        <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3233/3233917.png">
-    </head>
-    <script>
-        // Cambia el título de la pestaña para asegurar el nombre
-        window.parent.document.title = "Embragues Rosario";
-    </script>
-    """,
-    unsafe_allow_html=True
-)
+# 2. Encabezado con imagen local (la que vas a subir a GitHub)
+col_logo, col_tit = st.columns([1, 4])
+with col_logo:
+    try:
+        # Intenta cargar logo.png desde tu repositorio
+        st.image("logo.png", width=80)
+    except:
+        # Si la imagen no está, muestra un emoji para que no de error
+        st.write("⚙️")
 
-# 3. Diseño de la aplicación
-st.title("🚗 Embragues Rosario")
-st.subheader("Calculadora de Cobros Getnet")
+with col_tit:
+    st.title("Embragues Rosario")
 
+st.write("### Calculadora de Cobros Getnet")
+
+# Entrada de dinero
 monto = st.number_input("Monto que querés recibir limpio:", min_value=0.0, value=100000.0, step=1000.0)
 
 st.divider()
@@ -75,4 +70,4 @@ c1.success(f"**QR**\n\n${monto * 1.01:,.2f}")
 c2.success(f"**Débito**\n\n${monto * 1.012:,.2f}")
 c3.success(f"**Crédito 1p**\n\n${monto * 1.025:,.2f}")
 
-st.caption("Fórmulas actualizadas Getnet Dic-2025.")
+st.caption("Fórmulas actualizadas 2025 - Rosario, Argentina.")
