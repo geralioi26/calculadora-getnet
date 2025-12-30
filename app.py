@@ -1,28 +1,27 @@
 import streamlit as st
 
-# 1. Configuración básica
+# 1. Configuración de la pestaña
 st.set_page_config(
     page_title="Embragues Rosario",
-    page_icon="🚗", 
+    page_icon="💿", 
     layout="centered"
 )
 
-# 2. Encabezado con imagen local (la que vas a subir a GitHub)
+# 2. Encabezado: Logo y Título
 col_logo, col_tit = st.columns([1, 4])
 with col_logo:
     try:
-        # Intenta cargar logo.png desde tu repositorio
+        # Intentamos cargar la imagen que subiste
         st.image("logo.png", width=80)
     except:
-        # Si la imagen no está, muestra un emoji para que no de error
-        st.write("⚙️")
+        # Si falla, ponemos un auto (así sabemos que el código cambió)
+        st.write("🚗")
 
 with col_tit:
     st.title("Embragues Rosario")
+    st.write("### Calculadora de Cobros Getnet")
 
-st.write("### Calculadora de Cobros Getnet")
-
-# Entrada de dinero
+# 3. Entrada de dinero
 monto = st.number_input("Monto que querés recibir limpio:", min_value=0.0, value=100000.0, step=1000.0)
 
 st.divider()
@@ -47,7 +46,7 @@ with col2:
 
 st.divider()
 
-# --- SECCIÓN PLANES LARGOS ---
+# --- SECCIÓN PLANES LARGOS (EMISOR) ---
 st.markdown("### 📈 Planes Largos (Solo Plan Emisor)")
 col_9, col_12 = st.columns(2)
 
@@ -70,4 +69,4 @@ c1.success(f"**QR**\n\n${monto * 1.01:,.2f}")
 c2.success(f"**Débito**\n\n${monto * 1.012:,.2f}")
 c3.success(f"**Crédito 1p**\n\n${monto * 1.025:,.2f}")
 
-st.caption("Fórmulas actualizadas 2025 - Rosario, Argentina.")
+st.caption("Fórmulas actualizadas Dic-2025 - Rosario, Argentina.")
