@@ -39,7 +39,7 @@ t12_largo = precio_base * 1.80
 qr_modo = precio_base * 1.01
 debito = precio_base * 1.025
 
-# 5. VISUALIZACIÓN EN PANTALLA (Con Totales Finales)
+# 5. VISUALIZACIÓN EN PANTALLA
 col_a, col_b, col_c = st.columns(3)
 
 with col_a:
@@ -65,22 +65,22 @@ with col_c:
     st.write(f"12 x **${t12_largo/12:,.2f}**")
     st.write(f"Total: **${t12_largo:,.0f}**")
 
-# 6. FUNCIÓN DE WHATSAPP (Mensaje Corto, Limpio y con Onda)
+# 6. FUNCIÓN DE WHATSAPP (Formato corregido para negritas en celular)
 mensaje = (
     f"🚗 *EMBRAGUES ROSARIO*\n"
     f"¡Hola! Gracias por tu consulta. Te paso el presupuesto:\n\n"
-    f"💰 *EFECTIVO / TRANSF:* **${precio_base:,.2f}**\n\n"
+    f"💰 *EFECTIVO / TRANSF:* *${precio_base:,.2f}*\n\n"
     f"💳 *TARJETA BANCARIA:*\n"
-    f"✅ 1 pago: **${credito_1p:,.0f}**\n"
-    f"✅ 3 cuotas: **${t3_bna/3:,.2f}** (Total: **${t3_bna:,.0f}**)\n"
-    f"✅ 6 cuotas: **${t6_bna/6:,.2f}** (Total: **${t6_bna:,.0f}**)\n\n"
+    f"✅ 1 pago: *${credito_1p:,.0f}*\n"
+    f"✅ 3 cuotas: *${t3_bna/3:,.2f}* (Total: *${t3_bna:,.0f}*)\n"
+    f"✅ 6 cuotas: *${t6_bna/6:,.2f}* (Total: *${t6_bna:,.0f}*)\n\n"
     f"📈 *PLANES LARGOS:*\n"
-    f"👉 9 pagos de: **${t9_largo/9:,.2f}** (Total: **${t9_largo:,.0f}**)\n"
-    f"👉 12 pagos de: **${t12_largo/12:,.2f}** (Total: **${t12_largo:,.0f}**)\n\n"
-    f"📱 *QR:* **${qr_modo:,.0f}** | 💳 *DÉBITO:* **${debito:,.0f}**\n\n"
-    f"📍 Crespo 4117\n"
-    f"⏰ 8:30 a 17:00 hs\n"
-    f"📸 @embraguesrosario\n\n"
+    f"👉 9 pagos de: *${t9_largo/9:,.2f}* (Total: *${t9_largo:,.0f}*)\n"
+    f"👉 12 pagos de: *${t12_largo/12:,.2f}* (Total: *${t12_largo:,.0f}*)\n\n"
+    f"📱 *QR:* *${qr_modo:,.0f}* | 💳 *DÉBITO:* *${debito:,.0f}*\n\n"
+    f"📍 *Crespo 4117*\n"
+    f"⏰ *8:30 a 17:00 hs*\n"
+    f"📸 *@embraguesrosario*\n\n"
     f"¡Te esperamos pronto! ✨"
 )
 
@@ -92,6 +92,6 @@ st.link_button("🟢 ENVIAR POR WHATSAPP", link_whatsapp)
 
 # 7. NOTA INTERNA
 with st.expander("📝 Nota para el mostrador"):
-    st.write("Cobrar el **Total** en la Maquinola y elegir **'Sin Interés'**.")
+    st.write("Recordá cobrar el *Total* en la Maquinola y elegir *'Sin Interés'*.")
 
 st.caption("Fórmulas actualizadas Feb-2026. IIBB: EXENTO.")
