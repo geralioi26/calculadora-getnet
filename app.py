@@ -26,7 +26,7 @@ with col2:
     st.title("Embragues Rosario")
     st.caption("Dirección: Crespo 4117, Rosario | Condición: IIBB EXENTO")
 
-# 3. ENTRADA DE PRECIO
+# 3. ENTRADA DE PRECIO (Base Efectivo)
 st.markdown("---")
 precio_base = st.number_input("Precio en EFECTIVO ($):", min_value=0.0, value=100000.0, step=1000.0)
 
@@ -39,7 +39,7 @@ t12_largo = precio_base * 1.80
 qr_modo = precio_base * 1.01
 debito = precio_base * 1.025
 
-# 5. VISUALIZACIÓN EN PANTALLA
+# 5. VISUALIZACIÓN EN PANTALLA (Con Totales Finales)
 col_a, col_b, col_c = st.columns(3)
 
 with col_a:
@@ -50,15 +50,22 @@ with col_a:
 with col_b:
     st.success("🏦 **BANCO NACIÓN**")
     st.write(f"1 pago: **${credito_1p:,.0f}**")
+    st.divider()
     st.write(f"3 x **${t3_bna/3:,.2f}**")
+    st.write(f"Total: ${t3_bna:,.0f}")
+    st.divider()
     st.write(f"6 x **${t6_bna/6:,.2f}**")
+    st.write(f"Total: ${t6_bna:,.0f}")
 
 with col_c:
     st.warning("📈 **LARGOS**")
     st.write(f"9 x **${t9_largo/9:,.2f}**")
+    st.write(f"Total: ${t9_largo:,.0f}")
+    st.divider()
     st.write(f"12 x **${t12_largo/12:,.2f}**")
+    st.write(f"Total: ${t12_largo:,.0f}")
 
-# 6. FUNCIÓN DE WHATSAPP (Mensaje con más "onda" y negritas)
+# 6. FUNCIÓN DE WHATSAPP (Mensaje con onda y negritas)
 mensaje = (
     f"👋 *¡HOLA! MUCHAS GRACIAS POR CONSULTAR EN EMBRAGUES ROSARIO.*\n\n"
     f"Aquí tenés el presupuesto detallado para tu comodidad:\n"
@@ -68,7 +75,7 @@ mensaje = (
     f"💳 *CON TARJETA DE CRÉDITO (BANCARIA):*\n"
     f"▶ *1 PAGO:* **${credito_1p:,.0f}**\n"
     f"▶ *3 CUOTAS DE:* **${t3_bna/3:,.2f}** (Total: ${t3_bna:,.0f})\n"
-    f"▶ *6 CUOTAS DE:* **${t6_bna/6:,.2f}** (Total: ${t6_bna:,.0f})\n\n"
+    f"- 6 CUOTAS DE:* **${t6_bna/6:,.2f}** (Total: ${t6_bna:,.0f})\n\n"
     f"📈 *PLANES LARGOS (9 y 12):*\n"
     f"▶ *9 CUOTAS DE:* **${t9_largo/9:,.2f}** (Total: ${t9_largo:,.0f})\n"
     f"▶ *12 CUOTAS DE:* **${t12_largo/12:,.2f}** (Total: ${t12_largo:,.0f})\n\n"
@@ -88,6 +95,6 @@ st.link_button("🟢 ENVIAR PRESUPUESTO POR WHATSAPP", link_whatsapp)
 
 # 7. NOTA INTERNA
 with st.expander("📝 Nota para el mostrador"):
-    st.write("Recordá cobrar el **Total** en la Maquinola y elegir **'Sin Interés'**.")
+    st.write("Cobrar el **Total** en la Maquinola y elegir **'Sin Interés'**.")
 
 st.caption("Fórmulas actualizadas Feb-2026. IIBB: EXENTO.")
