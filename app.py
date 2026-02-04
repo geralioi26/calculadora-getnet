@@ -26,11 +26,12 @@ with col2:
     st.title("Embragues Rosario")
     st.caption("Dirección: Crespo 4117, Rosario | Condición: IIBB EXENTO")
 
-# 3. ENTRADA DE PRECIO (Base Efectivo)
+# 3. ENTRADA DE PRECIO
 st.markdown("---")
 precio_base = st.number_input("Precio en EFECTIVO ($):", min_value=0.0, value=100000.0, step=1000.0)
 
-# 4. CÁLCULOS
+# 4. CÁLCULOS (Recargos para recibir precio base limpio)
+credito_1p = precio_base * 1.03
 t3_bna = precio_base * 1.10
 t6_bna = precio_base * 1.18
 t9_largo = precio_base * 1.58
@@ -38,7 +39,7 @@ t12_largo = precio_base * 1.80
 qr_modo = precio_base * 1.01
 debito = precio_base * 1.025
 
-# 5. VISUALIZACIÓN EN PANTALLA (Con totales para el cliente)
+# 5. VISUALIZACIÓN EN PANTALLA
 col_a, col_b, col_c = st.columns(3)
 
 with col_a:
@@ -47,50 +48,46 @@ with col_a:
     st.caption("Billete / Transf.")
 
 with col_b:
-    st.success("🏦 **BNA (3 y 6)**")
-    st.write(f"3 x ${t3_bna/3:,.2f}")
-    st.write(f"**Total: ${t3_bna:,.0f}**")
-    st.divider()
-    st.write(f"6 x ${t6_bna/6:,.2f}")
-    st.write(f"**Total: ${t6_bna:,.0f}**")
+    st.success("🏦 **BANCO NACIÓN**")
+    st.write(f"1 pago: **${credito_1p:,.0f}**")
+    st.write(f"3 x **${t3_bna/3:,.2f}**")
+    st.write(f"6 x **${t6_bna/6:,.2f}**")
 
 with col_c:
     st.warning("📈 **LARGOS**")
-    st.write(f"9 x ${t9_largo/9:,.2f}")
-    st.write(f"**Total: ${t9_largo:,.0f}**")
-    st.divider()
-    st.write(f"12 x ${t12_largo/12:,.2f}")
-    st.write(f"**Total: ${t12_largo:,.0f}**")
+    st.write(f"9 x **${t9_largo/9:,.2f}**")
+    st.write(f"12 x **${t12_largo/12:,.2f}**")
 
-# 6. FUNCIÓN DE WHATSAPP (Mensaje amable y completo)
+# 6. FUNCIÓN DE WHATSAPP (Mensaje con más "onda" y negritas)
 mensaje = (
-    f"👋 *¡Hola! Muchas gracias por consultar en Embragues Rosario.*\n\n"
-    f"Aquí tenés el presupuesto que solicitaste para tu comodidad:\n"
+    f"👋 *¡HOLA! MUCHAS GRACIAS POR CONSULTAR EN EMBRAGUES ROSARIO.*\n\n"
+    f"Aquí tenés el presupuesto detallado para tu comodidad:\n"
     f"------------------------------------\n"
-    f"💵 *PRECIO EN EFECTIVO:* ${precio_base:,.2f}\n"
+    f"💵 *PRECIO EN EFECTIVO:* **${precio_base:,.2f}**\n"
     f"*(Billete o Transferencia)*\n\n"
-    f"💳 *CON TARJETA BANCARIA:*\n"
-    f"- 3 cuotas de: ${t3_bna/3:,.2f} (Total: ${t3_bna:,.0f})\n"
-    f"- 6 cuotas de: ${t6_bna/6:,.2f} (Total: ${t6_bna:,.0f})\n\n"
+    f"💳 *CON TARJETA DE CRÉDITO (BANCARIA):*\n"
+    f"▶ *1 PAGO:* **${credito_1p:,.0f}**\n"
+    f"▶ *3 CUOTAS DE:* **${t3_bna/3:,.2f}** (Total: ${t3_bna:,.0f})\n"
+    f"▶ *6 CUOTAS DE:* **${t6_bna/6:,.2f}** (Total: ${t6_bna:,.0f})\n\n"
     f"📈 *PLANES LARGOS (9 y 12):*\n"
-    f"- 9 cuotas de: ${t9_largo/9:,.2f} (Total: ${t9_largo:,.0f})\n"
-    f"- 12 cuotas de: ${t12_largo/12:,.2f} (Total: ${t12_largo:,.0f})\n\n"
-    f"⚡ *OTROS:* QR MODO: ${qr_modo:,.0f} | Débito: ${debito:,.0f}\n"
+    f"▶ *9 CUOTAS DE:* **${t9_largo/9:,.2f}** (Total: ${t9_largo:,.0f})\n"
+    f"▶ *12 CUOTAS DE:* **${t12_largo/12:,.2f}** (Total: ${t12_largo:,.0f})\n\n"
+    f"⚡ *OTROS:* QR MODO: **${qr_modo:,.0f}** | DÉBITO: **${debito:,.0f}**\n"
     f"------------------------------------\n"
-    f"📍 *Dirección:* Crespo 4117, Rosario\n"
-    f"⏰ *Horario:* 8:30 a 17:00 hs\n"
-    f"📸 *Instagram:* @embraguesrosario\n\n"
-    f"✨ *¡Muchas gracias por elegirnos y te esperamos pronto en el taller!*"
+    f"📍 *DIRECCIÓN:* **Crespo 4117, Rosario**\n"
+    f"⏰ *HORARIO:* **8:30 a 17:00 hs**\n"
+    f"📸 *INSTAGRAM:* **@embraguesrosario**\n\n"
+    f"✨ *¡MUCHAS GRACIAS POR ELEGIRNOS Y TE ESPERAMOS PRONTO EN EL TALLER!*"
 )
 
 texto_url = urllib.parse.quote(mensaje)
 link_whatsapp = f"https://wa.me/?text={texto_url}"
 
 st.divider()
-st.link_button("🟢 Enviar Presupuesto por WhatsApp", link_whatsapp)
+st.link_button("🟢 ENVIAR PRESUPUESTO POR WHATSAPP", link_whatsapp)
 
-# 7. NOTA INTERNA PARA GERARDO
-with st.expander("📝 Nota para el mostrador (Uso interno)"):
-    st.write("Para recibir el precio de efectivo limpio, cobrar en la Maquinola el **Total** que figura en pantalla y elegir **'Cuotas sin interés'**.")
+# 7. NOTA INTERNA
+with st.expander("📝 Nota para el mostrador"):
+    st.write("Recordá cobrar el **Total** en la Maquinola y elegir **'Sin Interés'**.")
 
-st.caption("Fórmulas actualizadas Feb-2026. Los recargos cubren la comisión bancaria por ser IIBB Exento.")
+st.caption("Fórmulas actualizadas Feb-2026. IIBB: EXENTO.")
