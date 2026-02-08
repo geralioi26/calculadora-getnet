@@ -1,10 +1,11 @@
 import streamlit as st
 import urllib.parse
 
-# 1. IDENTIDAD Y CONFIGURACIÓN (Logo de Placa y Disco)
-st.set_page_config(page_title="Embragues Rosario", page_icon="⚙️")
+# 1. IDENTIDAD Y CONFIGURACIÓN (Logo de Placa y Disco en la pestaña)
+# Usamos tu archivo logo.png para que sea el ícono oficial
+st.set_page_config(page_title="Embragues Rosario", page_icon="logo.png")
 
-# Cargamos el logo que tenés en la carpeta del proyecto
+# Mostramos el logo en el encabezado
 st.image("logo.png", width=300) 
 st.title("Embragues Rosario")
 st.markdown("Crespo 4117, Rosario | **IIBB: EXENTO**")
@@ -23,13 +24,13 @@ with col_b:
 with col_m:
     metodo = st.radio("Medio de pago:", ["Link de Pago", "POS Físico / QR"], horizontal=True)
 
-# 4. LÓGICA DE PORCENTAJES (Basado en tus fotos de Más Pagos BNA)
-# Link: 3% + IVA = 3.63% real | POS: 2.3% + IVA = 2.78% real
+# 4. LÓGICA DE PORCENTAJES (Basado en tus fotos y IIBB Exento)
+# BNA: 3.00% + IVA (Link) / 2.30% + IVA (POS)
 if banco == "BNA (Más Pagos)":
     if metodo == "Link de Pago":
-        f1, f3, f6 = 1.042, 1.12, 1.20  # Margen para Link
+        f1, f3, f6 = 1.042, 1.12, 1.20  
     else:
-        f1, f3, f6 = 1.033, 1.10, 1.18  # Margen para POS (más barato)
+        f1, f3, f6 = 1.033, 1.10, 1.18  
 else:
     if metodo == "Link de Pago":
         f1, f3, f6 = 1.045, 1.16, 1.29
@@ -41,33 +42,33 @@ total_1p = monto_limpio * f1
 total_3p = monto_limpio * f3
 total_6p = monto_limpio * f6
 
-# 6. PANTALLA DE RESULTADOS (Corregido el error de col3)
+# 6. PANTALLA DE RESULTADOS (Invertimos cuota y total)
 st.divider()
 st.success(f"### **EFECTIVO / TRANSFERENCIA: ${monto_limpio:,.0f}**")
 
-# Definimos las tres columnas correctamente para evitar el NameError
 col1, col2, col3 = st.columns(3)
 with col1:
     st.metric("1 PAGO", f"${total_1p:,.0f}")
 with col2:
-    st.metric("3 CUOTAS TOTAL", f"${total_3p:,.0f}")
-    st.caption(f"3 x ${total_3p/3:,.2f}")
+    # Ahora la cuota es lo grande y el total lo chiquito
+    st.metric("3 CUOTAS DE:", f"${total_3p/3:,.2f}")
+    st.caption(f"Total financiado: ${total_3p:,.0f}")
 with col3:
-    st.metric("6 CUOTAS TOTAL", f"${total_6p:,.0f}")
-    st.caption(f"6 x ${total_6p/6:,.2f}")
+    st.metric("6 CUOTAS DE:", f"${total_6p/6:,.2f}")
+    st.caption(f"Total financiado: ${total_6p:,.0f}")
 
 # 7. GENERADOR DE WHATSAPP
 frase_volante = "Incluye rectificación y balanceo de volante."
 
 mensaje = (
     f"🚗 *EMBRAGUES ROSARIO*\n"
-    f"Presupuesto: Kit {tipo_kit} marca {marca}.\n"
+    f"Presupuesto para Kit {tipo_kit} marca {marca}.\n"
     f"{frase_volante}\n\n"
     f"💰 **EFECTIVO / TRANSFERENCIA: ${monto_limpio:,.0f}**\n\n"
     f"💳 *OPCIONES CON {metodo.upper()} ({banco}):*\n"
     f"✅ 1 pago: *${total_1p:,.0f}*\n"
-    f"✅ 3 cuotas: *${total_3p/3:,.2f}* (Total: *${total_3p:,.0f}*)\n"
-    f"✅ 6 cuotas: *${total_6p/6:,.2f}* (Total: *${total_6p:,.0f}*)\n\n"
+    f"✅ 3 cuotas de *${total_3p/3:,.2f}* (Total: *${total_3p:,.0f}*)\n"
+    f"✅ 6 cuotas de *${total_6p/6:,.2f}* (Total: *${total_6p:,.0f}*)\n\n"
     f"📍 Crespo 4117, Rosario\n"
     f"📸 @embraguesrosario\n"
     f"¡Te esperamos! ✨"
