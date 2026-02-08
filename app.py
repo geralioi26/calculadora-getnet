@@ -6,7 +6,7 @@ import pandas as pd
 import os
 from datetime import datetime
 
-# 1. IDENTIDAD Y CONFIGURACIÓN
+# 1. IDENTIDAD Y CONFIGURACIÓN (Logo en pestaña y app)
 st.set_page_config(page_title="Embragues Rosario", page_icon="logo.png")
 st.image("logo.png", width=300) 
 st.title("Embragues Rosario")
@@ -32,30 +32,33 @@ cliente_nombre = st.sidebar.text_input("Nombre del Cliente:", "Consumidor Final"
 
 tipo_kit = st.sidebar.selectbox("Tipo de Kit:", ["Nuevo", "Reparado completo con crapodina"])
 
-# Lógica dinámica fiel a tus pedidos (balanceado / sin paréntesis)
+# Lógica dinámica fiel a tus pedidos
 if tipo_kit == "Nuevo":
     marca_kit = st.sidebar.text_input("Marca del Kit Nuevo:", "Sachs")
     label_item, texto_detalle, icono = "*Embrague:*", f"KIT nuevo marca *{marca_kit}*", "⚙️"
     incluye_rectif = True 
 else:
-    marcas_elegidas = st.sidebar.multiselect("Marcas de Crapodina:", ["Luk", "Skf", "Ina", "Dbh", "The"], default=["Luk", "Skf"])
+    marcas_disponibles = ["Luk", "Skf", "Ina", "Dbh", "The"]
+    marcas_elegidas = st.sidebar.multiselect("Marcas de Crapodina:", marcas_disponibles, default=["Luk", "Skf"])
+    
     m_negrita = [f"*{m}*" for m in marcas_elegidas]
     texto_marcas = ", ".join(m_negrita[:-1]) + " o " + m_negrita[-1] if len(m_negrita) > 1 else (m_negrita[0] if m_negrita else "*primera marca*")
-    label_item, texto_detalle, icono = "*Trabajo:*", f"reparado completo placa disco con forros originales volante rectificado y balanceado con crapodina {texto_marcas}", "🔧"
+
+    label_item, texto_detalle, icono = "*Trabajo:*", f"reparado completo placa disco con forros originales volante rectificado y balanceado con crapodina {texto_marcas}"
     incluye_rectif = False 
+    icono = "🔧"
 
 # --- 🔍 CONTROL DE STOCK (Carga Manual y Foto) ---
 st.sidebar.divider()
 st.sidebar.write("📸 **Control de Stock (Uso Interno)**")
+# Campo manual que faltaba
 codigo_manual = st.sidebar.text_input("Código de repuesto (Manual):")
 
 foto = st.sidebar.file_uploader("O subir foto de caja para código:", type=["jpg", "png", "jpeg"])
 if foto is not None:
     try:
-        # Convertimos la imagen para evitar el ValueError
         img_pil = Image.open(foto)
         st.sidebar.image(img_pil, caption="Foto cargada correctamente", use_container_width=True)
-        # Aquí la app está lista para que el lector procese la imagen sin trabarse
     except Exception:
         st.sidebar.error("Error al procesar la imagen.")
 
@@ -110,7 +113,7 @@ else:
     st.info("No hay operaciones registradas.")
 
 # 5. WHATSAPP (Limpio para el cliente)
-maps_link = "http://googleusercontent.com/maps.google.com/search/Crespo+4117+Rosario"
+maps_link = "https://www.google.com/maps/search/Crespo+4117+Rosario"
 ig_link = "https://www.instagram.com/embraguesrosario/"
 s = "‎" # Espacio invisible
 
@@ -130,4 +133,12 @@ mensaje = (
     f"✅  *6 cuotas de:* ${s}{t6/6:,.2f}\n"
     f"     (Total: ${s}{t6:,.0f})\n\n"
     f"📍  *Dirección:* Crespo 4117, Rosario\n"
-    f"📍  *Ubicación:* {maps_
+    f"📍  *Ubicación:* {maps_link}\n"
+    f"📸  *Instagram:* *@embraguesrosario*\n"
+    f"     {ig_link}\n"
+    f"⏰  *Horario:* 8:30 a 17:00 hs\n\n"
+    f"¡Te esperamos pronto! 🙋🏻"
+)
+
+link_wa = f"https://wa.me/?text={urllib.parse.quote(mensaje)}"
+st.link_button("🟢 ENVIAR POR WHATSAPP", link_wa)
