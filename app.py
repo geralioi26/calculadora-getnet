@@ -18,29 +18,34 @@ tipo_kit = st.sidebar.selectbox("Tipo de Kit:", ["Nuevo", "Reparado completo con
 # Lógica dinámica para los textos y marcas
 if tipo_kit == "Nuevo":
     marca_kit = st.sidebar.text_input("Marca del Kit Nuevo:", "Sachs")
-    label_item = "*Embrague:*" # Negrita como pediste
-    texto_detalle = f"Kit NUEVO marca {marca_kit}"
-    incluye_linea_extra = True # Para que aparezca la frase del volante aparte
+    label_item = "*Kit Embrague:*" 
+    # Ponemos la marca en negrita en el presupuesto
+    texto_detalle = f"NUEVO marca *{marca_kit}*"
+    incluye_linea_extra = True 
     icono = "⚙️"
 else:
-    # MULTISELECTOR para elegir varias marcas de crapodina
+    # MULTISELECTOR con nombres en formato normal (no todo mayúsculas)
+    marcas_disponibles = ["Luk", "Skf", "Ina", "Dbh", "The"]
     marcas_elegidas = st.sidebar.multiselect(
         "Marcas de Crapodina disponibles:", 
-        ["Luk", "SKF", "INA", "DBH", "THE"],
-        default=["Luk", "SKF"]
+        marcas_disponibles,
+        default=["Luk", "Skf"]
     )
-    # Unimos las marcas seleccionadas
-    if len(marcas_elegidas) > 1:
-        texto_marcas = ", ".join(marcas_elegidas[:-1]) + " o " + marcas_elegidas[-1]
-    elif marcas_elegidas:
-        texto_marcas = marcas_elegidas[0]
+    
+    # Formateamos las marcas para que cada una aparezca en negrita en el mensaje
+    marcas_negrita = [f"*{m}*" for m in marcas_elegidas]
+    
+    if len(marcas_negrita) > 1:
+        texto_marcas = ", ".join(marcas_negrita[:-1]) + " o " + marcas_negrita[-1]
+    elif marcas_negrita:
+        texto_marcas = marcas_negrita[0]
     else:
-        texto_marcas = "primera marca"
+        texto_marcas = "*primera marca*"
 
     label_item = "*Trabajo:*"
-    # Frase técnica exacta: sin paréntesis y con 'balanceado'
+    # Frase técnica: sin paréntesis y con 'balanceado'
     texto_detalle = f"reparado completo placa disco con forros originales volante rectificado y balanceado con crapodina {texto_marcas}"
-    incluye_linea_extra = False # NO se repite la línea de volante porque ya está arriba
+    incluye_linea_extra = False 
     icono = "🔧"
 
 # 3. SELECTORES DE PAGO (Link o POS)
@@ -60,11 +65,11 @@ else:
 # 5. CÁLCULOS
 t1, t3, t6 = monto_limpio * r1, monto_limpio * r3, monto_limpio * r6
 
-# 6. PANTALLA DE RESULTADOS (Cuota GRANDE, Total chiquito)
+# 6. PANTALLA DE RESULTADOS (App)
 st.divider()
 st.success(f"### **💰 EFECTIVO / TRANSF: $ {monto_limpio:,.0f}**")
 
-col1, col2, col3 = st.columns(3) # Definimos las 3 para evitar NameError
+col1, col2, col3 = st.columns(3) 
 with col1:
     st.metric("1 PAGO", f"$ {t1:,.0f}")
 with col2:
@@ -74,11 +79,12 @@ with col3:
     st.metric("6 CUOTAS DE:", f"$ {t6/6:,.2f}")
     st.caption(f"Total: $ {t6:,.0f}")
 
-# 7. GENERADOR DE WHATSAPP (Ajustado a tus pedidos)
-maps_link = "http://googleusercontent.com/maps.google.com/rs3f5t3U3y3qF7uy8"
+# 7. GENERADOR DE WHATSAPP
+# Corregimos el link de Maps para que no tire 404
+maps_link = "https://maps.app.goo.gl/rs3f5t3U3y3qF7uy8"
 ig_handle = "@embraguesrosario"
 ig_link = "https://www.instagram.com/embraguesrosario/"
-s = "‎" # Espacio invisible para evitar subrayados azules
+s = "‎" # Espacio invisible para evitar números azules
 
 linea_rectif = f"✅  *Incluye rectificación y balanceo de volante*\n" if incluye_linea_extra else ""
 
