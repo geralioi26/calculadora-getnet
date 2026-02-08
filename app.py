@@ -80,11 +80,11 @@ with col3:
     st.caption(f"Total: $ {t6:,.0f}")
 
 # 7. GENERADOR DE WHATSAPP
-# Link robusto que abre Maps con tu dirección exacta
-maps_link = "https://www.google.com/maps/search/?api=1&query=Crespo+4117+Rosario"
+# Usamos un link de búsqueda de Google Maps para evitar errores de previsualización
+maps_link = "https://www.google.com/maps/search/Crespo+4117+Rosario"
 ig_handle = "@embraguesrosario"
 ig_link = "https://www.instagram.com/embraguesrosario/"
-s = "‎" # Espacio invisible para evitar números azules
+s = "‎" # Espacio invisible para evitar números azules y subrayados
 
 linea_rectif = f"✅  *Incluye rectificación y balanceo de volante*\n" if incluye_linea_extra else ""
 
