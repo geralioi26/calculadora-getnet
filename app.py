@@ -6,13 +6,13 @@ st.set_page_config(page_title="Embragues Rosario - Calculadora", page_icon="⚙�
 st.title("⚙️ Embragues Rosario")
 st.markdown("Crespo 4117, Rosario | **IIBB: EXENTO**")
 
-# 2. ENTRADA DE DATOS (Mantenemos lo que ya funcionaba)
+# 2. ENTRADA DE DATOS (Sidebar)
 st.sidebar.header("🔧 Configuración del Kit")
 monto_limpio = st.sidebar.number_input("Monto LIMPIO para vos ($):", min_value=0, value=210000, step=5000)
 tipo_kit = st.sidebar.selectbox("Tipo de Kit:", ["Nuevo", "Reparado Completo", "Reparado + Crapodina"])
 marca = st.sidebar.text_input("Marca / Vehículo:", "Sachs")
 
-# 3. SELECTORES DE BANCO Y MEDIO (Los nuevos "goles")
+# 3. SELECTORES DE BANCO Y MEDIO
 st.markdown("### 💳 Configuración de Cobro")
 col_b, col_m = st.columns(2)
 with col_b:
@@ -24,10 +24,10 @@ with col_m:
 # BNA: 3.00% + IVA (Link) / 2.30% + IVA (POS)
 if banco == "BNA (Más Pagos)":
     if metodo == "Link de Pago":
-        f1, f3, f6 = 1.042, 1.12, 1.20  # Recargos para Link
+        f1, f3, f6 = 1.042, 1.12, 1.20  # Basado en tus capturas
     else:
-        f1, f3, f6 = 1.033, 1.10, 1.18  # Recargos para POS (Más barato)
-# Getnet: Tasas estándar
+        f1, f3, f6 = 1.033, 1.10, 1.18  # El POS es más barato (2.3% + IVA)
+# Getnet (Santander)
 else:
     if metodo == "Link de Pago":
         f1, f3, f6 = 1.045, 1.16, 1.29
@@ -39,22 +39,22 @@ total_1p = monto_limpio * f1
 total_3p = monto_limpio * f3
 total_6p = monto_limpio * f6
 
-# 6. PANTALLA DE RESULTADOS
+# 6. PANTALLA DE RESULTADOS (Corregido el error de col3)
 st.divider()
 # Marcamos en negrita el precio de efectivo como pediste
 st.success(f"### **EFECTIVO / TRANSFERENCIA: ${monto_limpio:,.0f}**")
 
-c1, c2, c3 = st.columns(3)
-with c1:
+col1, col2, col3 = st.columns(3)
+with col1:
     st.metric("1 PAGO", f"${total_1p:,.0f}")
-with c2:
+with col2:
     st.metric("3 CUOTAS TOTAL", f"${total_3p:,.0f}")
-    st.caption(f"3 x ${total_3p/3:,.2f}")
+    st.caption(f"3 cuotas de ${total_3p/3:,.2f}")
 with col3:
     st.metric("6 CUOTAS TOTAL", f"${total_6p:,.0f}")
-    st.caption(f"6 x ${total_6p/6:,.2f}")
+    st.caption(f"6 cuotas de ${total_6p/6:,.2f}")
 
-# 7. GENERADOR DE WHATSAPP (Con la frase exacta del volante)
+# 7. GENERADOR DE WHATSAPP
 frase_volante = "Incluye rectificación y balanceo de volante."
 
 mensaje = (
