@@ -1,8 +1,8 @@
 import streamlit as st
 import urllib.parse
 
-# 1. IDENTIDAD Y CONFIGURACIÓN
-st.set_page_config(page_title="Embragues Rosario", page_icon="📍")
+# 1. IDENTIDAD Y CONFIGURACIÓN (Vuelve tu logo a la pestaña)
+st.set_page_config(page_title="Embragues Rosario", page_icon="logo.png")
 st.image("logo.png", width=300) 
 st.title("Embragues Rosario")
 st.markdown("Crespo 4117, Rosario | **IIBB: EXENTO**")
@@ -12,20 +12,35 @@ st.sidebar.header("⚙️ Configuración")
 monto_limpio = st.sidebar.number_input("Monto LIMPIO para vos ($):", min_value=0, value=210000, step=5000)
 vehiculo = st.sidebar.text_input("Vehículo:", "Renault Sandero")
 
-# Opciones de Kit
+# Selector de Kit
 tipo_kit = st.sidebar.selectbox("Tipo de Kit:", ["Nuevo", "Reparado completo con crapodina"])
 
-# Lógica dinámica para los textos del presupuesto
+# Lógica dinámica para los textos y marcas
 if tipo_kit == "Nuevo":
     marca_kit = st.sidebar.text_input("Marca del Kit Nuevo:", "Sachs")
     label_item = "*Embrague:*" # Negrita como pediste
-    texto_item = f"Kit NUEVO marca {marca_kit}"
+    texto_detalle = f"Kit NUEVO marca {marca_kit}"
+    incluye_linea_extra = True # Para que aparezca la frase del volante aparte
     icono = "⚙️"
 else:
-    # Agregamos la lista de marcas de crapodina que pediste
-    marcas_crap = "Luk, skf, ina, dbh o the"
+    # MULTISELECTOR para elegir varias marcas de crapodina
+    marcas_elegidas = st.sidebar.multiselect(
+        "Marcas de Crapodina disponibles:", 
+        ["Luk", "SKF", "INA", "DBH", "THE"],
+        default=["Luk", "SKF"]
+    )
+    # Unimos las marcas seleccionadas
+    if len(marcas_elegidas) > 1:
+        texto_marcas = ", ".join(marcas_elegidas[:-1]) + " o " + marcas_elegidas[-1]
+    elif marcas_elegidas:
+        texto_marcas = marcas_elegidas[0]
+    else:
+        texto_marcas = "primera marca"
+
     label_item = "*Trabajo:*"
-    texto_item = f"(reparado) completo con crapodina {marcas_crap} (según disponibilidad)"
+    # Frase técnica exacta: sin paréntesis y con 'balanceado'
+    texto_detalle = f"reparado completo placa disco con forros originales volante rectificado y balanceado con crapodina {texto_marcas}"
+    incluye_linea_extra = False # NO se repite la línea de volante porque ya está arriba
     icono = "🔧"
 
 # 3. SELECTORES DE PAGO (Link o POS)
@@ -34,9 +49,9 @@ col_b, col_m = st.columns(2)
 with col_b:
     banco = st.radio("Sistema:", ["BNA (Más Pagos)", "Getnet (Santander)"], horizontal=True)
 with col_m:
-    metodo = st.radio("Medio:", ["Link de Pago", "POS Físico / QR"], horizontal=True)
+    metodo = st.radio("Medio de pago:", ["Link de Pago", "POS Físico / QR"], horizontal=True)
 
-# 4. LÓGICA DE TASAS
+# 4. LÓGICA DE TASAS (BNA: 3.00%+IVA Link / 2.30%+IVA POS)
 if banco == "BNA (Más Pagos)":
     r1, r3, r6 = (1.042, 1.12, 1.20) if metodo == "Link de Pago" else (1.033, 1.10, 1.18)
 else:
@@ -49,7 +64,7 @@ t1, t3, t6 = monto_limpio * r1, monto_limpio * r3, monto_limpio * r6
 st.divider()
 st.success(f"### **💰 EFECTIVO / TRANSF: $ {monto_limpio:,.0f}**")
 
-col1, col2, col3 = st.columns(3) # Definimos las 3 columnas juntas para evitar el error NameError
+col1, col2, col3 = st.columns(3) # Definimos las 3 para evitar NameError
 with col1:
     st.metric("1 PAGO", f"$ {t1:,.0f}")
 with col2:
@@ -59,20 +74,20 @@ with col3:
     st.metric("6 CUOTAS DE:", f"$ {t6/6:,.2f}")
     st.caption(f"Total: $ {t6:,.0f}")
 
-# 7. GENERADOR DE WHATSAPP (Ajustado para evitar subrayados azules)
+# 7. GENERADOR DE WHATSAPP (Ajustado a tus pedidos)
 maps_link = "http://googleusercontent.com/maps.google.com/rs3f5t3U3y3qF7uy8"
 ig_handle = "@embraguesrosario"
 ig_link = "https://www.instagram.com/embraguesrosario/"
+s = "‎" # Espacio invisible para evitar subrayados azules
 
-# Usamos un espacio invisible tras el $ para engañar al algoritmo de WhatsApp y que no subraye
-s = "‎" # Carácter invisible
+linea_rectif = f"✅  *Incluye rectificación y balanceo de volante*\n" if incluye_linea_extra else ""
 
 mensaje = (
     f"🚗  *EMBRAGUES ROSARIO*\n"
     f"¡Hola! Gracias por tu consulta. Te paso el presupuesto:\n\n"
     f"🚗  *Vehículo:* {vehiculo}\n"
-    f"{icono}  {label_item} {texto_item}\n"
-    f"✅  *Incluye rectificación y balanceo de volante*\n\n"
+    f"{icono}  {label_item} {texto_detalle}\n"
+    f"{linea_rectif}\n" 
     f"💰  *EFECTIVO / TRANSF:* ${s}{monto_limpio:,.0f}\n\n"
     f"💳  *TARJETA BANCARIA ({metodo}):*\n"
     f"✅  *1 pago:* ${s}{t1:,.0f}\n"
@@ -85,7 +100,7 @@ mensaje = (
     f"📸  *Instagram:* *{ig_handle}*\n"
     f"     {ig_link}\n"
     f"⏰  *Horario:* 8:30 a 17:00 hs\n\n"
-    f"¡Te esperamos pronto! ✨"
+    f"¡Te esperamos pronto! 🙋🏻"
 )
 
 mensaje_codificado = urllib.parse.quote(mensaje)
