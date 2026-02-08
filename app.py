@@ -2,21 +2,27 @@ import streamlit as st
 import urllib.parse
 
 # 1. IDENTIDAD Y CONFIGURACIÓN
-# Usamos tu logo.png para la pestaña del navegador
+# Usamos tu logo.png para la pestaña y el encabezado
 st.set_page_config(page_title="Embragues Rosario", page_icon="logo.png")
 
-# Mostramos tu logo en la parte superior
 st.image("logo.png", width=300) 
 st.title("Embragues Rosario")
 st.markdown("Crespo 4117, Rosario | **IIBB: EXENTO**")
 
-# 2. ENTRADA DE DATOS (Sidebar)
-st.sidebar.header("🔧 Configuración del Kit")
+# 2. ENTRADA DE DATOS (Sidebar mejorado)
+st.sidebar.header("🔧 Configuración del Trabajo")
 monto_limpio = st.sidebar.number_input("Monto LIMPIO para vos ($):", min_value=0, value=210000, step=5000)
+vehiculo = st.sidebar.text_input("Vehículo (ej: Peugeot 206):", "Peugeot 206")
 
-# Ajustamos la opción según lo que pediste
 tipo_kit = st.sidebar.selectbox("Tipo de Kit:", ["Nuevo", "Reparado completo con crapodina"])
-marca = st.sidebar.text_input("Marca / Vehículo:", "Sachs")
+
+# Lógica condicional para las marcas
+if tipo_kit == "Nuevo":
+    marca_kit = st.sidebar.text_input("Marca del Kit:", "Sachs")
+    detalle_kit = f"Kit Nuevo marca {marca_kit}"
+else:
+    marca_crap = st.sidebar.text_input("Marca de la Crapodina:", "SKF")
+    detalle_kit = f"Kit Reparado completo con crapodina {marca_crap}"
 
 # 3. SELECTORES DE BANCO Y MEDIO
 st.markdown("### 💳 Configuración de Cobro")
@@ -45,18 +51,17 @@ total_6p = monto_limpio * f6
 
 # 6. PANTALLA DE RESULTADOS
 st.divider()
-# Destacamos efectivo/transferencia en negrita
 st.success(f"### **EFECTIVO / TRANSFERENCIA: ${monto_limpio:,.0f}**")
 
 col1, col2, col3 = st.columns(3)
 with col1:
     st.metric("1 PAGO", f"${total_1p:,.0f}")
 with col2:
-    # AHORA: Cuota grande, Total chiquito
+    # Cuota grande, Total chiquito
     st.metric("3 CUOTAS DE:", f"${total_3p/3:,.2f}")
     st.caption(f"Total financiado: ${total_3p:,.0f}")
 with col3:
-    # AHORA: Cuota grande, Total chiquito
+    # Cuota grande, Total chiquito
     st.metric("6 CUOTAS DE:", f"${total_6p/6:,.2f}")
     st.caption(f"Total financiado: ${total_6p:,.0f}")
 
@@ -65,7 +70,8 @@ frase_volante = "Incluye rectificación y balanceo de volante."
 
 mensaje = (
     f"🚗 *EMBRAGUES ROSARIO*\n"
-    f"Presupuesto: Kit {tipo_kit} marca {marca}.\n"
+    f"Presupuesto para: {vehiculo}\n"
+    f"Detalle: {detalle_kit}\n"
     f"{frase_volante}\n\n"
     f"💰 **EFECTIVO / TRANSFERENCIA: ${monto_limpio:,.0f}**\n\n"
     f"💳 *OPCIONES CON {metodo.upper()} ({banco}):*\n"
