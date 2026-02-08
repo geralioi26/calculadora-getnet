@@ -18,13 +18,14 @@ tipo_kit = st.sidebar.selectbox("Tipo de Kit:", ["Nuevo", "Reparado completo con
 # Lógica dinámica para los textos del presupuesto
 if tipo_kit == "Nuevo":
     marca_kit = st.sidebar.text_input("Marca del Kit Nuevo:", "Sachs")
-    label_dinamico = "Kit Embrague" # Agregamos 'Kit' como pediste
-    texto_detalle = f"NUEVO marca {marca_kit}"
+    label_item = "*Embrague:*" # Negrita como pediste
+    texto_item = f"Kit NUEVO marca {marca_kit}"
     icono = "⚙️"
 else:
-    marca_crap = st.sidebar.text_input("Marca de la Crapodina:", "Luk")
-    label_dinamico = "Trabajo"
-    texto_detalle = f"(reparado) completo con crapodina {marca_crap}"
+    # Agregamos la lista de marcas de crapodina que pediste
+    marcas_crap = "Luk, skf, ina, dbh o the"
+    label_item = "*Trabajo:*"
+    texto_item = f"(reparado) completo con crapodina {marcas_crap} (según disponibilidad)"
     icono = "🔧"
 
 # 3. SELECTORES DE PAGO (Link o POS)
@@ -35,7 +36,7 @@ with col_b:
 with col_m:
     metodo = st.radio("Medio:", ["Link de Pago", "POS Físico / QR"], horizontal=True)
 
-# 4. LÓGICA DE TASAS (BNA vs Getnet)
+# 4. LÓGICA DE TASAS
 if banco == "BNA (Más Pagos)":
     r1, r3, r6 = (1.042, 1.12, 1.20) if metodo == "Link de Pago" else (1.033, 1.10, 1.18)
 else:
@@ -48,7 +49,7 @@ t1, t3, t6 = monto_limpio * r1, monto_limpio * r3, monto_limpio * r6
 st.divider()
 st.success(f"### **💰 EFECTIVO / TRANSF: $ {monto_limpio:,.0f}**")
 
-col1, col2, col3 = st.columns(3)
+col1, col2, col3 = st.columns(3) # Definimos las 3 columnas juntas para evitar el error NameError
 with col1:
     st.metric("1 PAGO", f"$ {t1:,.0f}")
 with col2:
@@ -58,25 +59,27 @@ with col3:
     st.metric("6 CUOTAS DE:", f"$ {t6/6:,.2f}")
     st.caption(f"Total: $ {t6:,.0f}")
 
-# 7. GENERADOR DE WHATSAPP (Optimizado para Celular)
+# 7. GENERADOR DE WHATSAPP (Ajustado para evitar subrayados azules)
 maps_link = "http://googleusercontent.com/maps.google.com/rs3f5t3U3y3qF7uy8"
 ig_handle = "@embraguesrosario"
 ig_link = "https://www.instagram.com/embraguesrosario/"
 
-# Usamos espacios estratégicos para evitar los números azules y saltos de línea para los totales
+# Usamos un espacio invisible tras el $ para engañar al algoritmo de WhatsApp y que no subraye
+s = "‎" # Carácter invisible
+
 mensaje = (
     f"🚗  *EMBRAGUES ROSARIO*\n"
     f"¡Hola! Gracias por tu consulta. Te paso el presupuesto:\n\n"
     f"🚗  *Vehículo:* {vehiculo}\n"
-    f"{icono}  *{label_dinamico}:* {texto_detalle}\n"
+    f"{icono}  {label_item} {texto_item}\n"
     f"✅  *Incluye rectificación y balanceo de volante*\n\n"
-    f"💰  *EFECTIVO / TRANSF:* $ {monto_limpio:,.0f}\n\n"
+    f"💰  *EFECTIVO / TRANSF:* ${s}{monto_limpio:,.0f}\n\n"
     f"💳  *TARJETA BANCARIA ({metodo}):*\n"
-    f"✅  *1 pago:* $ {t1:,.0f}\n"
-    f"✅  *3 cuotas de:* $ {t3/3:,.2f}\n"
-    f"     (Total: $ {t3:,.0f})\n\n"
-    f"✅  *6 cuotas de:* $ {t6/6:,.2f}\n"
-    f"     (Total: $ {t6:,.0f})\n\n"
+    f"✅  *1 pago:* ${s}{t1:,.0f}\n"
+    f"✅  *3 cuotas de:* ${s}{t3/3:,.2f}\n"
+    f"     (Total: ${s}{t3:,.0f})\n\n"
+    f"✅  *6 cuotas de:* ${s}{t6/6:,.2f}\n"
+    f"     (Total: ${s}{t6:,.0f})\n\n"
     f"📍  *Dirección:* Crespo 4117\n"
     f"📍  *Ubicación:* {maps_link}\n"
     f"📸  *Instagram:* *{ig_handle}*\n"
