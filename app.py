@@ -3,66 +3,57 @@ import urllib.parse
 from PIL import Image
 import numpy as np
 
-# 1. IDENTIDAD Y CONFIGURACIÓN (Vuelve tu logo a la pestaña)
+# 1. IDENTIDAD (Vuelve tu logo a la pestaña y arriba de todo)
 st.set_page_config(page_title="Embragues Rosario", page_icon="logo.png")
 st.image("logo.png", width=300) 
 st.title("Embragues Rosario")
 st.markdown("Crespo 4117, Rosario | **IIBB: EXENTO**")
 
-# 2. ENTRADA DE DATOS (Sidebar con Escáner Interno)
+# 2. CONFIGURACIÓN (Sidebar)
 st.sidebar.header("⚙️ Configuración")
 monto_limpio = st.sidebar.number_input("Monto LIMPIO ($):", min_value=0, value=210000, step=5000)
 vehiculo = st.sidebar.text_input("Vehículo:", "Renault Sandero")
 
-# Selector de Kit
 tipo_kit = st.sidebar.selectbox("Tipo de Kit:", ["Nuevo", "Reparado completo con crapodina"])
 
-# Lógica dinámica para los textos (Respetando tus correcciones)
+# Lógica de textos y marcas
 if tipo_kit == "Nuevo":
     marca_kit = st.sidebar.text_input("Marca del Kit Nuevo:", "Sachs")
-    label_item = "*Embrague:*" 
+    label_item = "*Embrague:*"
     texto_detalle = f"KIT nuevo marca *{marca_kit}*"
-    incluye_linea_extra = True 
+    incluye_rectif = True 
     icono = "⚙️"
 else:
-    marcas_disponibles = ["Luk", "Skf", "Ina", "Dbh", "The"]
-    marcas_elegidas = st.sidebar.multiselect(
-        "Marcas de Crapodina disponibles:", 
-        marcas_disponibles,
+    marcas_crap = st.sidebar.multiselect(
+        "Marcas de Crapodina:", 
+        ["Luk", "Skf", "Ina", "Dbh", "The"],
         default=["Luk", "Skf"]
     )
-    # Formateamos las marcas para negrita y minúsculas prolijas
-    m_negrita = [f"*{m}*" for m in marcas_elegidas]
-    if len(m_negrita) > 1:
-        t_marcas = ", ".join(m_negrita[:-1]) + " o " + m_negrita[-1]
-    elif m_negrita:
-        t_marcas = m_negrita[0]
-    else:
-        t_marcas = "*primera marca*"
+    m_negrita = [f"*{m}*" for m in marcas_crap]
+    texto_marcas = ", ".join(m_negrita[:-1]) + " o " + m_negrita[-1] if len(m_negrita) > 1 else (m_negrita[0] if m_negrita else "*primera marca*")
 
     label_item = "*Trabajo:*"
-    # Frase técnica: sin paréntesis y con 'balanceado'
-    texto_detalle = f"reparado completo placa disco con forros originales volante rectificado y balanceado con crapodina {t_marcas}"
-    incluye_linea_extra = False 
+    # Frase técnica exacta: balanceado y sin paréntesis
+    texto_detalle = f"reparado completo placa disco con forros originales volante rectificado y balanceado con crapodina {texto_marcas}"
+    incluye_rectif = False 
     icono = "🔧"
 
-# --- 🔍 ESCÁNER INTERNO (Solo para tu pantalla, NO para el cliente) ---
+# --- 🔍 CONTROL INTERNO (Carga de Código y Foto) ---
 st.sidebar.divider()
-st.sidebar.write("📸 **Escaneo de Caja (Uso Interno)**")
-foto = st.sidebar.file_uploader("Subí foto de la caja:", type=["jpg", "png", "jpeg"])
-codigo_interno = ""
+st.sidebar.write("📋 **Control de Stock (Uso Interno)**")
 
+# ACÁ ESTÁ EL CAMPO MANUAL QUE FALTABA
+codigo_manual = st.sidebar.text_input("Código de repuesto (Manual):", help="Este código NO se envía al cliente")
+
+foto = st.sidebar.file_uploader("O cargar foto de la caja:", type=["jpg", "png", "jpeg"])
 if foto is not None:
     try:
         img_pil = Image.open(foto)
         st.sidebar.image(img_pil, caption="Caja cargada", use_container_width=True)
-        # Aquí verías el código en tu celular, pero no se copia al presupuesto
-        codigo_interno = "620 3041 00" # Ejemplo de detección
-        st.sidebar.info(f"Código detectado: {codigo_interno}")
     except Exception:
-        st.sidebar.error("Error al procesar la imagen")
+        st.sidebar.error("Error al procesar la imagen.")
 
-# 3. SELECTORES DE PAGO (Link o POS)
+# 3. SELECTORES DE PAGO
 st.markdown("### 💳 Configuración de Cobro")
 col_b, col_m = st.columns(2)
 with col_b:
@@ -79,7 +70,7 @@ else:
 # 5. CÁLCULOS
 t1, t3, t6 = monto_limpio * r1, monto_limpio * r3, monto_limpio * r6
 
-# 6. PANTALLA DE RESULTADOS (App)
+# 6. RESULTADOS APP
 st.divider()
 st.success(f"### **💰 CONTADO: $ {monto_limpio:,.0f}**")
 c1, c2, c3 = st.columns(3)
@@ -91,20 +82,21 @@ with c3:
     st.metric("6 CUOTAS DE:", f"$ {t6/6:,.2f}")
     st.caption(f"Total: $ {t6:,.0f}")
 
-# 7. GENERADOR DE WHATSAPP (Limpio y con Link Corregido)
-# Link oficial que funciona directo y evita la imagen de mapa gigante
-maps_link = "https://maps.google.com/?q=Embragues+Rosario+Crespo+4117+Rosario"
+# 7. WHATSAPP (Limpio para el cliente y sin códigos)
+# Link de búsqueda directa para evitar errores de ubicación
+maps_link = "https://www.google.com/maps/search/Crespo+4117+Rosario"
+ig_handle = "@embraguesrosario"
 ig_link = "https://www.instagram.com/embraguesrosario/"
-s = "‎" # Carácter invisible contra números azules
+s = "‎" # Espacio invisible para evitar números azules
 
-linea_rectif = f"✅  *Incluye rectificación y balanceo de volante*\n" if incluye_linea_extra else ""
+linea_extra = f"✅  *Incluye rectificación y balanceo de volante*\n" if incluye_rectif else ""
 
 mensaje = (
     f"🚗  *EMBRAGUES ROSARIO*\n"
     f"¡Hola! Gracias por tu consulta. Te paso el presupuesto:\n\n"
     f"🚗  *Vehículo:* {vehiculo}\n"
     f"{icono}  {label_item} {texto_detalle}\n"
-    f"{linea_rectif}\n" 
+    f"{linea_extra}\n"
     f"💰  *EFECTIVO / TRANSF:* ${s}{monto_limpio:,.0f}\n\n"
     f"💳  *TARJETA BANCARIA ({metodo}):*\n"
     f"✅  *1 pago:* ${s}{t1:,.0f}\n"
@@ -114,7 +106,7 @@ mensaje = (
     f"     (Total: ${s}{t6:,.0f})\n\n"
     f"📍  *Dirección:* Crespo 4117, Rosario\n"
     f"📍  *Ubicación:* {maps_link}\n"
-    f"📸  *Instagram:* *@embraguesrosario*\n"
+    f"📸  *Instagram:* *{ig_handle}*\n"
     f"     {ig_link}\n"
     f"⏰  *Horario:* 8:30 a 17:00 hs\n\n"
     f"¡Te esperamos pronto! 🙋🏻"
