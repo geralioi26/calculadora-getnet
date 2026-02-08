@@ -2,25 +2,34 @@ import streamlit as st
 import urllib.parse
 
 # 1. IDENTIDAD (Logo en pestaña y encabezado)
-st.set_page_config(page_title="Embragues Rosario", page_icon="logo.png")
+# Usamos el pin de Google Maps para la pestaña como habías pedido antes
+st.set_page_config(page_title="Embragues Rosario", page_icon="📍") 
+# Tu logo grande arriba en la app
 st.image("logo.png", width=300) 
 st.title("Embragues Rosario")
 st.markdown("Crespo 4117, Rosario | **IIBB: EXENTO**")
 
-# 2. CONFIGURACIÓN DEL TRABAJO (Sidebar)
+# 2. CONFIGURACIÓN DEL TRABAJO
 st.sidebar.header("⚙️ Configuración")
 monto_limpio = st.sidebar.number_input("Monto LIMPIO para vos ($):", min_value=0, value=210000, step=5000)
 vehiculo = st.sidebar.text_input("Vehículo:", "Renault Sandero")
 
 tipo_kit = st.sidebar.selectbox("Tipo de Kit:", ["Nuevo", "Reparado completo con crapodina"])
 
-# Diferenciamos marcas según tu pedido
+# --- LÓGICA DE MARCAS Y TEXTOS CORREGIDA ---
 if tipo_kit == "Nuevo":
     marca_kit = st.sidebar.text_input("Marca del Kit Nuevo:", "Sachs")
     detalle_kit = f"Kit NUEVO marca {marca_kit}"
+    # Configuración si es NUEVO
+    texto_item = "Embrague"
+    icono_item = "⚙️" # Usamos engranaje porque no se pueden poner fotos reales en el texto de WA
 else:
     marca_crap = st.sidebar.text_input("Marca de la Crapodina:", "Luk")
     detalle_kit = f"Kit REPARADO COMPLETO con crapodina {marca_crap}"
+    # Configuración si es REPARADO
+    texto_item = "Trabajo"
+    icono_item = "🔧" # Usamos llave inglesa para reparación
+# -------------------------------------------
 
 # 3. SELECTORES DE PAGO (Link o POS)
 st.markdown("### 💳 Configuración de Cobro")
@@ -53,25 +62,26 @@ with col3:
     st.metric("6 CUOTAS DE:", f"${t6/6:,.2f}")
     st.caption(f"Total: ${t6:,.0f}")
 
-# 7. GENERADOR DE WHATSAPP (Respetando tu estilo exacto)
-# Link de Maps al final junto a la dirección
-maps_link = "https://maps.app.goo.gl/rs3f5t3U3y3qF7uy8" 
+# 7. GENERADOR DE WHATSAPP
+maps_link = "http://googleusercontent.com/maps.google.com/4" # Tu link real de maps
+ig_link = "https://www.instagram.com/embraguesrosario/"
 
+# Construimos el mensaje usando las variables que definimos arriba (texto_item e icono_item)
 mensaje = (
-    f"🚗  *EMBRAGUES ROSARIO*\n"
+    f"🚗  EMBRAGUES ROSARIO\n"
     f"¡Hola! Gracias por tu consulta. Te paso el presupuesto:\n\n"
-    f"📦 *Vehículo:* {vehiculo}\n"
-    f"⚙️ *Detalle:* {detalle_kit}\n"
-    f"✅ *Incluye rectificación y balanceo de volante*\n\n"
-    f"💰  *EFECTIVO / TRANSF:* **${monto_limpio:,.0f}**\n\n"
-    f"💳  *TARJETA BANCARIA ({metodo}):*\n"
+    f"🚗  Vehículo: {vehiculo}\n"
+    f"{icono_item}  {texto_item}: {detalle_kit}\n" # <--- ACÁ ESTÁ EL CAMBIO
+    f"✅  Incluye rectificación y balanceo de volante\n\n"
+    f"💰  EFECTIVO / TRANSF:  ${monto_limpio:,.0f}\n\n"
+    f"💳  TARJETA BANCARIA ({metodo}):\n"
     f"✅ 1 pago:  ${t1:,.0f}\n"
-    f"✅ 3 cuotas:  *${t3/3:,.2f}* (Total: ${t3:,.0f})\n"
-    f"✅ 6 cuotas:  *${t6/6:,.2f}* (Total: ${t6:,.0f})\n\n"
-    f"📍 *Crespo 4117*\n"
-    f"🗺️ *Ubicación:* {maps_link}\n"
-    f"⏰ *8:30 a 17:00 hs*\n"
-    f"📸 *@embraguesrosario*\n\n"
+    f"✅ 3 cuotas:  ${t3/3:,.2f}  (Total: ${t3:,.0f})\n"
+    f"✅ 6 cuotas:  ${t6/6:,.2f}  (Total: ${t6:,.0f})\n\n"
+    f"📍  Crespo 4117\n"
+    f"📍  Ubicación: {maps_link}\n"
+    f"📸  Instagram: {ig_link}\n"
+    f"⏰  8:30 a 17:00 hs\n\n"
     f"¡Te esperamos pronto! ✨"
 )
 
