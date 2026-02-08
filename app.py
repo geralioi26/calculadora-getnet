@@ -1,38 +1,72 @@
 import streamlit as st
 import urllib.parse
+import pandas as pd
+import os
+from PIL import Image
+# Importamos la herramienta para leer fotos
+try:
+    import easyocr
+    # Cargamos el lector (se hace una sola vez para que sea rápido)
+    @st.cache_resource
+    def load_reader():
+        return easyocr.Reader(['es', 'en'])
+    reader = load_reader()
+except:
+    reader = None
 
-# 1. IDENTIDAD Y CONFIGURACIÓN (Vuelve tu logo a la pestaña)
+# 1. IDENTIDAD (Vuelve tu logo a la pestaña)
 st.set_page_config(page_title="Embragues Rosario", page_icon="logo.png")
 st.image("logo.png", width=300) 
 st.title("Embragues Rosario")
 st.markdown("Crespo 4117, Rosario | **IIBB: EXENTO**")
 
+# --- FUNCIONES DE LA BASE DE DATOS (EXCEL) ---
+DB_FILE = "base_codigos.xlsx"
+
+def guardar_en_base(vehiculo, kit_cod):
+    if os.path.exists(DB_FILE):
+        df = pd.read_excel(DB_FILE)
+    else:
+        df = pd.DataFrame(columns=["Vehiculo", "Codigo_Kit"])
+    
+    nuevo = pd.DataFrame([[vehiculo, kit_cod]], columns=["Vehiculo", "Codigo_Kit"])
+    df = pd.concat([df, nuevo], ignore_index=True).drop_duplicates()
+    df.to_excel(DB_FILE, index=False)
+
 # 2. ENTRADA DE DATOS (Sidebar)
 st.sidebar.header("⚙️ Configuración")
+
+# --- NUEVO: ESCÁNER DE FOTOS ---
+st.sidebar.subheader("📸 Escanear Código")
+foto = st.sidebar.file_uploader("Subí foto de la caja:", type=['jpg', 'png', 'jpeg'])
+codigo_extraido = ""
+
+if foto and reader:
+    img = Image.open(foto)
+    st.sidebar.image(img, caption="Foto cargada", use_column_width=True)
+    with st.sidebar.status("🔍 Leyendo código..."):
+        resultados = reader.readtext(foto)
+        # Buscamos textos que parezcan códigos (más de 4 caracteres)
+        codigo_extraido = " ".join([res[1] for res in resultados if len(res[1]) > 4])
+    st.sidebar.success(f"Detectado: {codigo_extraido}")
+st.sidebar.divider()
+
 monto_limpio = st.sidebar.number_input("Monto LIMPIO para vos ($):", min_value=0, value=210000, step=5000)
 vehiculo = st.sidebar.text_input("Vehículo:", "Renault Sandero")
 
-# Selector de Kit
 tipo_kit = st.sidebar.selectbox("Tipo de Kit:", ["Nuevo", "Reparado completo con crapodina"])
 
-# Lógica dinámica para los textos y marcas
 if tipo_kit == "Nuevo":
     marca_kit = st.sidebar.text_input("Marca del Kit Nuevo:", "Sachs")
-    label_item = "*Embrague:*" # Negrita como pediste
-    # Formato exacto: KIT nuevo marca [Marca] en negrita
-    texto_detalle = f"KIT nuevo marca *{marca_kit}*"
+    # Si el escáner leyó algo de la foto, lo pone acá automáticamente
+    cod_kit = st.sidebar.text_input("Código de Kit:", value=codigo_extraido)
+    label_item = "*Embrague:*"
+    texto_detalle = f"KIT nuevo marca *{marca_kit}* (Cod: {cod_kit})"
     incluye_linea_extra = True 
     icono = "⚙️"
 else:
-    # MULTISELECTOR con nombres en formato normal (Skf, Dbh, etc.)
     marcas_disponibles = ["Luk", "Skf", "Ina", "Dbh", "The"]
-    marcas_elegidas = st.sidebar.multiselect(
-        "Marcas de Crapodina disponibles:", 
-        marcas_disponibles,
-        default=["Luk", "Skf"]
-    )
-    
-    # Formateamos las marcas para que cada una aparezca en negrita
+    marcas_elegidas = st.sidebar.multiselect("Marcas de Crapodina disponibles:", marcas_disponibles, default=["Luk", "Skf"])
     marcas_negrita = [f"*{m}*" for m in marcas_elegidas]
     
     if len(marcas_negrita) > 1:
@@ -43,12 +77,17 @@ else:
         texto_marcas = "*primera marca*"
 
     label_item = "*Trabajo:*"
-    # Frase técnica: sin paréntesis y con 'balanceado'
     texto_detalle = f"reparado completo placa disco con forros originales volante rectificado y balanceado con crapodina {texto_marcas}"
     incluye_linea_extra = False 
     icono = "🔧"
 
-# 3. SELECTORES DE PAGO (Link o POS)
+# BOTÓN PARA GUARDAR EN TU EXCEL
+if st.sidebar.button("💾 Guardar en mi Base de Códigos"):
+    if tipo_kit == "Nuevo":
+        guardar_en_base(vehiculo, cod_kit)
+        st.sidebar.toast(f"¡Código {cod_kit} guardado! ✅")
+
+# 3. SELECTORES DE PAGO
 st.markdown("### 💳 Configuración de Cobro")
 col_b, col_m = st.columns(2)
 with col_b:
@@ -56,7 +95,7 @@ with col_b:
 with col_m:
     metodo = st.radio("Medio de pago:", ["Link de Pago", "POS Físico / QR"], horizontal=True)
 
-# 4. LÓGICA DE TASAS (BNA: 3.00%+IVA Link / 2.30%+IVA POS)
+# 4. LÓGICA DE TASAS
 if banco == "BNA (Más Pagos)":
     r1, r3, r6 = (1.042, 1.12, 1.20) if metodo == "Link de Pago" else (1.033, 1.10, 1.18)
 else:
@@ -65,10 +104,9 @@ else:
 # 5. CÁLCULOS
 t1, t3, t6 = monto_limpio * r1, monto_limpio * r3, monto_limpio * r6
 
-# 6. PANTALLA DE RESULTADOS (App)
+# 6. PANTALLA DE RESULTADOS
 st.divider()
 st.success(f"### **💰 EFECTIVO / TRANSF: $ {monto_limpio:,.0f}**")
-
 col1, col2, col3 = st.columns(3) 
 with col1:
     st.metric("1 PAGO", f"$ {t1:,.0f}")
@@ -80,11 +118,10 @@ with col3:
     st.caption(f"Total: $ {t6:,.0f}")
 
 # 7. GENERADOR DE WHATSAPP
-# Usamos un link de búsqueda de Google Maps para evitar errores de previsualización
 maps_link = "https://www.google.com/maps/search/Crespo+4117+Rosario"
 ig_handle = "@embraguesrosario"
 ig_link = "https://www.instagram.com/embraguesrosario/"
-s = "‎" # Espacio invisible para evitar números azules y subrayados
+s = "‎" # Espacio invisible
 
 linea_rectif = f"✅  *Incluye rectificación y balanceo de volante*\n" if incluye_linea_extra else ""
 
