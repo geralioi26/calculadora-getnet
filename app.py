@@ -18,13 +18,13 @@ tipo_kit = st.sidebar.selectbox("Tipo de Kit:", ["Nuevo", "Reparado completo con
 # Lógica dinámica para los textos y marcas
 if tipo_kit == "Nuevo":
     marca_kit = st.sidebar.text_input("Marca del Kit Nuevo:", "Sachs")
-    label_item = "*Kit Embrague:*" 
-    # Ponemos la marca en negrita en el presupuesto
-    texto_detalle = f"NUEVO marca *{marca_kit}*"
+    label_item = "*Embrague:*" # Negrita como pediste
+    # Formato exacto: KIT nuevo marca [Marca] en negrita
+    texto_detalle = f"KIT nuevo marca *{marca_kit}*"
     incluye_linea_extra = True 
     icono = "⚙️"
 else:
-    # MULTISELECTOR con nombres en formato normal (no todo mayúsculas)
+    # MULTISELECTOR con nombres en formato normal (Skf, Dbh, etc.)
     marcas_disponibles = ["Luk", "Skf", "Ina", "Dbh", "The"]
     marcas_elegidas = st.sidebar.multiselect(
         "Marcas de Crapodina disponibles:", 
@@ -32,7 +32,7 @@ else:
         default=["Luk", "Skf"]
     )
     
-    # Formateamos las marcas para que cada una aparezca en negrita en el mensaje
+    # Formateamos las marcas para que cada una aparezca en negrita
     marcas_negrita = [f"*{m}*" for m in marcas_elegidas]
     
     if len(marcas_negrita) > 1:
@@ -80,8 +80,8 @@ with col3:
     st.caption(f"Total: $ {t6:,.0f}")
 
 # 7. GENERADOR DE WHATSAPP
-# Corregimos el link de Maps para que no tire 404
-maps_link = "https://maps.app.goo.gl/rs3f5t3U3y3qF7uy8"
+# Link robusto que abre Maps con tu dirección exacta
+maps_link = "https://www.google.com/maps/search/?api=1&query=Crespo+4117+Rosario"
 ig_handle = "@embraguesrosario"
 ig_link = "https://www.instagram.com/embraguesrosario/"
 s = "‎" # Espacio invisible para evitar números azules
@@ -101,7 +101,7 @@ mensaje = (
     f"     (Total: ${s}{t3:,.0f})\n\n"
     f"✅  *6 cuotas de:* ${s}{t6/6:,.2f}\n"
     f"     (Total: ${s}{t6:,.0f})\n\n"
-    f"📍  *Dirección:* Crespo 4117\n"
+    f"📍  *Dirección:* Crespo 4117, Rosario\n"
     f"📍  *Ubicación:* {maps_link}\n"
     f"📸  *Instagram:* *{ig_handle}*\n"
     f"     {ig_link}\n"
