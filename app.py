@@ -1,7 +1,6 @@
 import streamlit as st
 import urllib.parse
 from PIL import Image
-import numpy as np
 import pandas as pd
 import os
 from datetime import datetime
@@ -12,69 +11,84 @@ st.image("logo.png", width=300)
 st.title("Embragues Rosario")
 st.markdown("Crespo 4117, Rosario | **IIBB: EXENTO**")
 
-# --- LÓGICA DE GESTIÓN (Ventas, Compras y Fecha) ---
+# --- LÓGICA DE GESTIÓN (Base de Datos sin Duplicados) ---
 ARCHIVO_INVENTARIO = "inventario_ventas.csv"
+COLUMNAS = ["Fecha", "Cliente", "Vehículo/Compatibilidad", "Detalle", "Venta $", "Compra $", "Proveedor", "Código Luk", "Código Sachs", "Observaciones"]
 
-def guardar_operacion(cliente, vehiculo, detalle, p_venta, p_compra, proveedor, codigo):
+def guardar_o_actualizar(cliente, vehiculo, detalle, p_venta, p_compra, prov, c_luk, c_sachs, obs):
     fecha_hoy = datetime.now().strftime("%d/%m/%Y %H:%M")
-    nuevo_registro = pd.DataFrame([[fecha_hoy, cliente, vehiculo, detalle, p_venta, p_compra, proveedor, codigo]], 
-                                  columns=["Fecha", "Cliente", "Vehículo", "Detalle", "Venta $", "Compra $", "Proveedor", "Código"])
-    if not os.path.isfile(ARCHIVO_INVENTARIO):
-        nuevo_registro.to_csv(ARCHIVO_INVENTARIO, index=False)
+    if os.path.isfile(ARCHIVO_INVENTARIO):
+        df = pd.read_csv(ARCHIVO_INVENTARIO)
     else:
-        nuevo_registro.to_csv(ARCHIVO_INVENTARIO, mode='a', header=False, index=False)
+        df = pd.DataFrame(columns=COLUMNAS)
 
-# 2. CONFIGURACIÓN DEL TRABAJO (Sidebar)
+    # Lógica inteligente para no duplicar repuestos
+    existe_luk = (c_luk != "" and c_luk in df['Código Luk'].values)
+    existe_sachs = (c_sachs != "" and c_sachs in df['Código Sachs'].values)
+
+    if existe_luk or existe_sachs:
+        idx = df[df['Código Luk'] == c_luk].index[0] if existe_luk else df[df['Código Sachs'] == c_sachs].index[0]
+        # Sumamos compatibilidad si es un auto nuevo
+        compat_actual = str(df.at[idx, 'Vehículo/Compatibilidad'])
+        if vehiculo not in compat_actual:
+            df.at[idx, 'Vehículo/Compatibilidad'] = f"{compat_actual}, {vehiculo}"
+        # Actualizamos datos de la última operación
+        df.at[idx, 'Fecha'] = fecha_hoy
+        df.at[idx, 'Venta $'] = p_venta
+        df.at[idx, 'Compra $'] = p_compra
+        df.at[idx, 'Proveedor'] = prov
+        # Agregamos observaciones nuevas al final
+        if obs:
+            obs_actual = str(df.at[idx, 'Observaciones']) if pd.notna(df.at[idx, 'Observaciones']) else ""
+            df.at[idx, 'Observaciones'] = f"{obs_actual} | {obs}" if obs_actual else obs
+        st.sidebar.info("📦 ¡Repuesto detectado! Se actualizó la información.")
+    else:
+        nueva_fila = pd.DataFrame([[fecha_hoy, cliente, vehiculo, detalle, p_venta, p_compra, prov, c_luk, c_sachs, obs]], columns=COLUMNAS)
+        df = pd.concat([df, nueva_fila], ignore_index=True)
+        st.sidebar.success("✅ Nuevo repuesto guardado con éxito.")
+    df.to_csv(ARCHIVO_INVENTARIO, index=False)
+
+# 2. CONFIGURACIÓN DEL PRESUPUESTO (Sidebar)
 st.sidebar.header("⚙️ Configuración")
 monto_limpio = st.sidebar.number_input("Precio de VENTA ($):", min_value=0, value=210000, step=5000)
-vehiculo = st.sidebar.text_input("Vehículo:", "Renault Sandero")
-cliente_nombre = st.sidebar.text_input("Nombre del Cliente:", "Consumidor Final")
+vehiculo_input = st.sidebar.text_input("Vehículo:", "Renault Sandero")
+cliente_input = st.sidebar.text_input("Nombre del Cliente:", "Consumidor Final")
 
 tipo_kit = st.sidebar.selectbox("Tipo de Kit:", ["Nuevo", "Reparado completo con crapodina"])
 
-# Lógica dinámica fiel a tus pedidos (balanceado / sin paréntesis)
 if tipo_kit == "Nuevo":
     marca_kit = st.sidebar.text_input("Marca del Kit Nuevo:", "Sachs")
-    label_item, texto_detalle, icono = "*Embrague:*", f"KIT nuevo marca *{marca_kit}*", "⚙️"
-    incluye_rectif = True 
+    label_item, texto_detalle, icono, incluye_rectif = "*Embrague:*", f"KIT nuevo marca *{marca_kit}*", "⚙️", True
 else:
-    marcas_disponibles = ["Luk", "Skf", "Ina", "Dbh", "The"]
-    marcas_elegidas = st.sidebar.multiselect("Marcas de Crapodina:", marcas_disponibles, default=["Luk", "Skf"])
-    m_negrita = [f"*{m}*" for m in marcas_elegidas]
-    texto_marcas = ", ".join(m_negrita[:-1]) + " o " + m_negrita[-1] if len(m_negrita) > 1 else (m_negrita[0] if m_negrita else "*primera marca*")
-    label_item, texto_detalle, icono = "*Trabajo:*", f"reparado completo placa disco con forros originales volante rectificado y balanceado con crapodina {texto_marcas}", "🔧"
-    incluye_rectif = False 
+    marcas = st.sidebar.multiselect("Marcas de Crapodina:", ["Luk", "Skf", "Ina", "Dbh", "The"], default=["Luk", "Skf"])
+    m_negrita = [f"*{m}*" for m in marcas]
+    texto_m = ", ".join(m_negrita[:-1]) + " o " + m_negrita[-1] if len(m_negrita) > 1 else (m_negrita[0] if m_negrita else "*primera marca*")
+    label_item, texto_detalle, icono, incluye_rectif = "*Trabajo:*", f"reparado completo placa disco con forros originales volante rectificado y balanceado con crapodina {texto_m}", "🔧", False
 
 # --- 🔍 CONTROL DE STOCK (Carga Manual y Foto) ---
 st.sidebar.divider()
-st.sidebar.write("📸 **Control de Stock (Uso Interno)**")
-codigo_manual = st.sidebar.text_input("Código de repuesto (Manual):")
+st.sidebar.write("📸 **Carga de Repuesto (Interno)**")
+c_luk = st.sidebar.text_input("Código LUK:")
+c_sachs = st.sidebar.text_input("Código SACHS:")
+obs_txt = st.sidebar.text_area("Observaciones:")
 
-foto = st.sidebar.file_uploader("O subir foto de caja para código:", type=["jpg", "png", "jpeg"])
-if foto is not None:
-    try:
-        img_pil = Image.open(foto)
-        st.sidebar.image(img_pil, caption="Foto cargada correctamente", use_container_width=True)
-    except Exception:
-        st.sidebar.error("Error al procesar la imagen.")
+foto = st.sidebar.file_uploader("Subir foto de la caja:", type=["jpg", "png", "jpeg"])
+if foto:
+    st.sidebar.image(Image.open(foto), use_container_width=True)
 
 st.sidebar.divider()
 st.sidebar.write("📥 **Datos de Compra**")
-precio_compra = st.sidebar.number_input("Precio de COMPRA ($):", min_value=0, value=0)
-proveedor = st.sidebar.text_input("Proveedor:", "Repuestos Rosario")
+p_compra = st.sidebar.number_input("Precio de COMPRA ($):", min_value=0, value=0)
+proveedor = st.sidebar.text_input("Proveedor:", "icepar")
 
-if st.sidebar.button("💾 GUARDAR OPERACIÓN"):
-    guardar_operacion(cliente_nombre, vehiculo, texto_detalle, monto_limpio, precio_compra, proveedor, codigo_manual)
-    st.sidebar.success(f"¡Venta de {vehiculo} guardada!")
+if st.sidebar.button("💾 GUARDAR O ACTUALIZAR"):
+    guardar_o_actualizar(cliente_input, vehiculo_input, texto_detalle, monto_limpio, p_compra, proveedor, c_luk, c_sachs, obs_txt)
     st.rerun()
 
-# 3. CÁLCULOS DE COBRO
+# 3. PAGOS Y CÁLCULOS
 st.markdown("### 💳 Cobro")
-col_b, col_m = st.columns(2)
-with col_b:
-    banco = st.radio("Sistema:", ["BNA (Más Pagos)", "Getnet (Santander)"], horizontal=True)
-with col_m:
-    metodo = st.radio("Medio:", ["Link de Pago", "POS Físico / QR"], horizontal=True)
+banco = st.radio("Sistema:", ["BNA (Más Pagos)", "Getnet (Santander)"], horizontal=True)
+metodo = st.radio("Medio:", ["Link de Pago", "POS Físico / QR"], horizontal=True)
 
 if banco == "BNA (Más Pagos)":
     r1, r3, r6 = (1.042, 1.12, 1.20) if metodo == "Link de Pago" else (1.033, 1.10, 1.18)
@@ -83,76 +97,9 @@ else:
 
 t1, t3, t6 = monto_limpio * r1, monto_limpio * r3, monto_limpio * r6
 
-# 4. RESULTADOS EN PANTALLA
+# 4. VISTA DE LA APP
 st.divider()
-st.success(f"### **💰 CONTADO: $ {monto_limpio:,.0f}**")
+st.success(f"### **💰 EFECTIVO / TRANSF: $ {monto_limpio:,.0f}**")
 c1, c2, c3 = st.columns(3)
 with c1: st.metric("1 PAGO", f"$ {t1:,.0f}")
-with c2: 
-    st.metric("3 CUOTAS DE:", f"$ {t3/3:,.2f}")
-    st.caption(f"Total: $ {t3:,.0f}")
-with c3: 
-    st.metric("6 CUOTAS DE:", f"$ {t6/6:,.2f}")
-    st.caption(f"Total: $ {t6:,.0f}")
-
-# --- 📜 HISTORIAL EDITABLE (Nuevo primero) ---
-st.divider()
-st.subheader("📋 Laburos Realizados (Podés editar las celdas)")
-if os.path.isfile(ARCHIVO_INVENTARIO):
-    df = pd.read_csv(ARCHIVO_INVENTARIO)
-    # Usamos st.data_editor para que puedas modificar el historial
-    # Invertimos para mostrar lo nuevo arriba, pero guardamos el editado
-    df_mostrado = df[::-1].reset_index(drop=True)
-    df_editado = st.data_editor(df_mostrado, use_container_width=True, num_rows="dynamic")
-    
-    col_hist1, col_hist2 = st.columns(2)
-    with col_hist1:
-        if st.button("💾 GUARDAR CAMBIOS EN HISTORIAL"):
-            # Al guardar, volvemos a invertir para mantener el orden cronológico en el CSV
-            df_final = df_editado[::-1].reset_index(drop=True)
-            df_final.to_csv(ARCHIVO_INVENTARIO, index=False)
-            st.success("¡Historial actualizado correctamente!")
-            st.rerun()
-            
-    with col_hist2:
-        if st.button("🗑️ Borrar Todo el Historial"):
-            os.remove(ARCHIVO_INVENTARIO)
-            st.rerun()
-            
-    ganancia = df["Venta $"].sum() - df["Compra $"].sum()
-    st.info(f"💰 **Ganancia Acumulada: $ {ganancia:,.2f}**")
-else:
-    st.info("No hay operaciones registradas.")
-
-# 5. WHATSAPP (Instagram Corregido)
-maps_link = "https://www.google.com/maps/search/Crespo+4117+Rosario"
-# Link oficial de Embragues Rosario corregido
-ig_link = "https://www.instagram.com/embraguesrosario?igsh=MWsxNzI1MTN4ZWJ3eg=="
-s = "‎" # Espacio invisible
-
-linea_extra = f"✅  *Incluye rectificación y balanceo de volante*\n" if incluye_rectif else ""
-
-mensaje = (
-    f"🚗  *EMBRAGUES ROSARIO*\n"
-    f"¡Hola! Gracias por tu consulta. Te paso el presupuesto:\n\n"
-    f"🚗  *Vehículo:* {vehiculo}\n"
-    f"{icono}  {label_item} {texto_detalle}\n"
-    f"{linea_extra}\n"
-    f"💰  *EFECTIVO / TRANSF:* ${s}{monto_limpio:,.0f}\n\n"
-    f"💳  *TARJETA BANCARIA ({metodo}):*\n"
-    f"✅  *1 pago:* ${s}{t1:,.0f}\n"
-    f"✅  *3 cuotas de:* ${s}{t3/3:,.2f}\n"
-    f"     (Total: ${s}{t3:,.0f})\n\n"
-    f"✅  *6 cuotas de:* ${s}{t6/6:,.2f}\n"
-    f"     (Total: ${s}{t6:,.0f})\n\n"
-    f"📍  *Dirección:* Crespo 4117, Rosario\n"
-    f"📍  *Ubicación:* {maps_link}\n"
-    f"📸  *Instagram:* *@embraguesrosario*\n"
-    f"     {ig_link}\n"
-    f"⏰  *Horario:* 8:30 a 17:00 hs\n\n"
-    f"¡Te esperamos pronto! 🙋🏻"
-)
-
-link_wa = f"https://wa.me/?text={urllib.parse.quote(mensaje)}"
-st.divider()
-st.link_button("🟢 ENVIAR POR WHATSAPP", link_wa)
+with c2: st.metric("3 CUOTAS DE:", f"$ {t3/3:,.2f}"); st.caption(f"Total:
