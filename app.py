@@ -6,36 +6,43 @@ import pandas as pd
 from datetime import datetime
 from streamlit_gsheets import GSheetsConnection
 
-# 1. IDENTIDAD Y CONFIGURACIÓN DE PÁGINA
+# 1. IDENTIDAD
 st.set_page_config(page_title="Embragues Rosario", page_icon="logo.png")
 st.image("logo.png", width=300) 
 st.title("Embragues Rosario")
 st.markdown("Crespo 4117, Rosario | **IIBB: EXENTO**")
 
-# --- 💾 CONEXIÓN PERMANENTE A GOOGLE SHEETS ---
+# --- 💾 CONEXIÓN A GOOGLE SHEETS ---
 conn = st.connection("gsheets", type=GSheetsConnection)
 
 def guardar_en_google(cat, cliente, vehiculo, detalle, p_venta, p_compra, proveedor, codigo):
     fecha_hoy = datetime.now().strftime("%d/%m/%Y %H:%M")
+    
+    # Nombres de columnas EXACTOS como en tu foto image_928686.jpg
+    columnas = ["fecha", "categoria", "cliente", "vehiculo", "detalle", "venta $", "compra $", "proveedor", "codigo"]
+    
     try:
-        # Usamos "Ventas" con V mayúscula como está en tu planilla
+        # worksheet="Ventas" con V mayúscula como en la pestaña de tu foto
         df_existente = conn.read(worksheet="Ventas")
-    except:
-        # Si la hoja está vacía, creamos los encabezados exactos de tu foto
-        df_existente = pd.DataFrame(columns=["fecha", "categoria", "cliente", "vehiculo", "detalle", "venta $", "compra $", "proveedor", "codigo"])
+        if df_existente is None or df_existente.empty:
+            df_existente = pd.DataFrame(columns=columnas)
+    except Exception:
+        df_existente = pd.DataFrame(columns=columnas)
     
+    # Creamos el nuevo registro
     nuevo_reg = pd.DataFrame([[fecha_hoy, cat, cliente, vehiculo, detalle, p_venta, p_compra, proveedor, codigo]], 
-                             columns=df_existente.columns)
+                             columns=columnas)
     
+    # Unimos y guardamos
     df_actualizado = pd.concat([df_existente, nuevo_reg], ignore_index=True)
     
-    # Guardamos en la nube (Requiere permisos de Editor en Google Sheets)
+    # Esta es la parte que daba el error rosa
     conn.update(worksheet="Ventas", data=df_actualizado)
 
-# 2. CONFIGURACIÓN DEL TRABAJO (Sidebar)
+# 2. CONFIGURACIÓN (Sidebar)
 st.sidebar.header("⚙️ Configuración")
 monto_limpio = st.sidebar.number_input("Precio de VENTA ($):", min_value=0, value=0)
-vehiculo_input = st.sidebar.text_input("Vehículo:", "citroen c4 motor tu5 1.6 16v")
+vehiculo_input = st.sidebar.text_input("Vehículo:", "Escribí el modelo acá")
 cliente_input = st.sidebar.text_input("Nombre del Cliente:", "Consumidor Final")
 
 tipo_item = st.sidebar.selectbox("Tipo de Trabajo:", 
@@ -45,65 +52,49 @@ tipo_item = st.sidebar.selectbox("Tipo de Trabajo:",
                                  "Solo Rectificación/Balanceo",
                                  "Otro / Solo Mano de Obra"])
 
-# Lógica de sugerencias automáticas de texto
+# Sugerencias dinámicas
 if "Nuevo" in tipo_item:
-    cat, icono, incl_rectif = "Venta", "⚙️", True
-    marca = st.sidebar.text_input("Marca del Kit:", "Sachs")
-    sugerencia = f"KIT nuevo marca *{marca}*"
+    cat_final, icono, incl_rectif = "Venta", "⚙️", True
+    marca_kit = st.sidebar.text_input("Marca del Kit:", "Sachs")
+    sugerencia = f"KIT nuevo marca *{marca_kit}*"
 elif "Reparación" in tipo_item:
-    cat, icono, incl_rectif = "Reparación", "🔧", False
-    marcas_crap = st.sidebar.multiselect("Marcas de Crapodina:", ["Luk", "Skf", "Ina", "Dbh", "The"], default=["Luk", "Skf"])
-    m_neg = [f"*{m}*" for m in marcas_crap]
+    cat_final, icono, incl_rectif = "Reparación", "🔧", False
+    m_crap = st.sidebar.multiselect("Marcas de Crapodina:", ["Luk", "Skf", "Ina", "Dbh", "The"], default=["Luk", "Skf"])
+    m_neg = [f"*{m}*" for m in m_crap]
     t_m = ", ".join(m_neg[:-1]) + " o " + m_neg[-1] if len(m_neg) > 1 else (m_neg[0] if m_neg else "*primera marca*")
     sugerencia = f"reparado completo placa disco con forros originales volante rectificado y balanceado con crapodina {t_m}"
 elif "Distribución" in tipo_item:
-    cat, icono, incl_rectif = "Venta", "🛠️", False
-    m_dist = st.sidebar.text_input("Marca:", "Skf")
-    sugerencia = f"KIT de distribución marca *{m_dist}*"
+    cat_final, icono, incl_rectif = "Venta", "🛠️", False
+    marca_dist = st.sidebar.text_input("Marca:", "Skf")
+    sugerencia = f"KIT de distribución marca *{marca_dist}*"
 else:
-    cat, icono, incl_rectif = "Trabajo", "🔧", False
-    sugerencia = "Escribí acá el detalle del laburo..."
+    cat_final, icono, incl_rectif = "Trabajo", "🔧", False
+    sugerencia = "Detalle del laburo..."
 
-# --- ✍️ CAMPO EDITABLE (Para que cargues lo que quieras a mano) ---
+# Cuadro editable (Tu pedido)
 st.sidebar.divider()
 detalle_final = st.sidebar.text_area("Detalle final (podés editarlo):", value=sugerencia)
-label_item = "*Producto:*" if cat == "Venta" else "*Trabajo:*"
+label_item = "*Producto:*" if cat_final == "Venta" else "*Trabajo:*"
 
-# --- 🔍 DATOS DE CONTROL INTERNO ---
+# --- 🔍 CONTROL INTERNO ---
 st.sidebar.divider()
 st.sidebar.write("📸 **Uso Interno**")
-codigo_manual = st.sidebar.text_input("Código de repuesto:")
-foto = st.sidebar.file_uploader("Subir foto:", type=["jpg", "png", "jpeg"])
-
-if foto is not None:
-    try:
-        # Corrección para el ValueError: usamos Pillow para procesar la imagen
-        img_pil = Image.open(foto) 
-        st.sidebar.image(img_pil, caption="Imagen cargada", use_container_width=True)
-    except:
-        st.sidebar.error("Error al procesar la imagen.")
-
-st.sidebar.write("📥 **Costos**")
+codigo_manual = st.sidebar.text_input("Código de repuesto / Kit:")
 precio_compra = st.sidebar.number_input("Precio de COMPRA ($):", min_value=0, value=0)
-proveedor_input = st.sidebar.text_input("Proveedor:", "Repuestos Rosario")
+proveedor_input = st.sidebar.text_input("Proveedor:", "icepar")
 
 if st.sidebar.button("💾 GUARDAR PARA SIEMPRE"):
-    guardar_en_google(cat, cliente_input, vehiculo_input, detalle_final, monto_limpio, precio_compra, proveedor_input, codigo_manual)
-    st.sidebar.success("¡Venta guardada correctamente en el Excel de Google!")
+    guardar_en_google(cat_final, cliente_input, vehiculo_input, detalle_final, monto_limpio, precio_compra, proveedor_input, codigo_manual)
+    st.sidebar.success("¡Venta guardada en tu Excel de Google!")
 
-# 3. CÁLCULO DE COBRO (SOLO BANCO NACIÓN)
+# 3. COBRO BNA
 st.markdown("### 💳 Cobro BNA (Más Pagos)")
 metodo = st.radio("Medio:", ["Link de Pago", "POS Físico / QR"], horizontal=True)
 
-# Tasas exclusivas de BNA (Quitamos Getnet)
-if metodo == "Link de Pago":
-    r1, r3, r6 = 1.042, 1.12, 1.20
-else:
-    r1, r3, r6 = 1.033, 1.10, 1.18
-
+r1, r3, r6 = (1.042, 1.12, 1.20) if metodo == "Link de Pago" else (1.033, 1.10, 1.18)
 t1, t3, t6 = monto_limpio * r1, monto_limpio * r3, monto_limpio * r6
 
-# 4. RESULTADOS EN PANTALLA
+# 4. RESULTADOS
 st.divider()
 st.success(f"### **💰 CONTADO: $ {monto_limpio:,.0f}**")
 c1, c2, c3 = st.columns(3)
@@ -115,23 +106,19 @@ with c3:
     st.metric("6 CUOTAS DE:", f"$ {t6/6:,.2f}")
     st.caption(f"Total: $ {t6:,.0f}")
 
-# --- 📜 HISTORIAL (Se actualiza solo desde Google) ---
+# --- 📜 HISTORIAL ---
 st.divider()
-st.subheader("📋 Historial de Ventas y Reparaciones")
+st.subheader("📋 Historial en la Nube")
 try:
-    df = conn.read(worksheet="Ventas")
-    if not df.empty:
-        # Mostramos los últimos movimientos primero
-        st.dataframe(df[::-1], use_container_width=True)
-        ganancia_bruta = df["venta $"].sum() - df["compra $"].sum()
-        st.info(f"💰 **Utilidad Total Acumulada: $ {ganancia_bruta:,.2f}**")
+    df_ver = conn.read(worksheet="Ventas")
+    if df_ver is not None and not df_ver.empty:
+        st.dataframe(df_ver[::-1], use_container_width=True)
 except:
-    st.info("No hay datos en la nube o falta conectar el link en 'Secrets'.")
+    st.info("Conectando con el historial...")
 
-# 5. WHATSAPP (Presupuesto limpio)
+# 5. WHATSAPP
 maps_link = "http://googleusercontent.com/maps.google.com/search/Crespo+4117+Rosario"
-ig_link = "https://www.instagram.com/embraguesrosario/"
-s = "‎" # Espacio invisible para evitar errores de formato en precios
+s = "‎" # Espacio invisible
 linea_rectif = f"✅  *Incluye rectificación y balanceo de volante*\n" if incl_rectif else ""
 
 mensaje = (
