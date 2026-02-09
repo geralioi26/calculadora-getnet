@@ -1,10 +1,5 @@
 streamlit
 pandas
-openpyxl
-easyocr
-opencv-python-headless
-Pillow
-st-gsheets-connection
-pandas
 Pillow
 numpy
+st-gsheets-connection
