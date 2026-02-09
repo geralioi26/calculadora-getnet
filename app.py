@@ -5,18 +5,18 @@ import pandas as pd
 from datetime import datetime
 from streamlit_gsheets import GSheetsConnection
 
-# 1. IDENTIDAD Y CONFIGURACIÓN DE PÁGINA
+# 1. IDENTIDAD DE EMBRAGUES ROSARIO
 st.set_page_config(page_title="Embragues Rosario", page_icon="logo.png")
 st.image("logo.png", width=300) 
 st.title("Embragues Rosario")
 st.markdown("Crespo 4117, Rosario | **IIBB: EXENTO**")
 
-# --- 💾 CONEXIÓN A GOOGLE SHEETS (Vía Secrets JSON) ---
+# --- 💾 CONEXIÓN A GOOGLE SHEETS ---
 conn = st.connection("gsheets", type=GSheetsConnection)
 
 def guardar_en_google(cat, cliente, vehiculo, detalle, p_venta, p_compra, proveedor, codigo, f_pago):
     fecha_hoy = datetime.now().strftime("%d/%m/%Y %H:%M")
-    # Coincide exactamente con tus títulos de la planilla (incluyendo la nueva columna)
+    # 10 columnas que coinciden con tu planilla (image_954c5b.png)
     columnas = ["fecha", "categoria", "cliente", "vehiculo", "detalle", "venta $", "compra $", "proveedor", "codigo", "forma de pago"]
     
     try:
@@ -36,27 +36,22 @@ monto_limpio = st.sidebar.number_input("Precio de VENTA ($):", min_value=0, valu
 vehiculo_input = st.sidebar.text_input("Vehículo:", "citroen c4 1.6")
 cliente_input = st.sidebar.text_input("Nombre del Cliente:", "Consumidor Final")
 
-# --- NUEVO: SELECCIÓN DE PAGO ---
-forma_pago_input = st.sidebar.selectbox("Forma de Pago Realizada:", 
-                                       ["Efectivo (Contado)", 
-                                        "Transferencia", 
-                                        "Tarjeta BNA - 1 Pago", 
-                                        "Tarjeta BNA - 3 Cuotas", 
-                                        "Tarjeta BNA - 6 Cuotas",
-                                        "Otro / Combinado"])
+# SELECCIÓN DE PAGO (Para tu control de caja)
+f_pago_input = st.sidebar.selectbox("Forma de Pago Realizada:", 
+                                   ["Efectivo (Contado)", "Transferencia", "Tarjeta BNA - 1 Pago", "Tarjeta BNA - 3 Cuotas", "Tarjeta BNA - 6 Cuotas", "Otro / Combinado"])
 
 tipo_item = st.sidebar.selectbox("Tipo de Trabajo:", 
                                 ["Embrague Nuevo (Venta)", 
                                  "Reparación de Embrague", 
                                  "Kit de Distribución",
                                  "Solo Rectificación/Balanceo",
-                                 "Otro / Solo Mano de Obra"])
+                                 "Otro"])
 
-# Sugerencias dinámicas de texto según el rubro
+# Lógica de iconos y sugerencias profesionales
 if "Nuevo" in tipo_item:
     cat_f, icono, incl_rectif = "Venta", "⚙️", True
-    marca_kit = st.sidebar.text_input("Marca del Kit:", "Sachs")
-    sugerencia = f"KIT nuevo marca *{marca_kit}*"
+    m_kit = st.sidebar.text_input("Marca del Kit:", "Sachs")
+    sugerencia = f"KIT nuevo marca *{m_kit}*"
 elif "Reparación" in tipo_item:
     cat_f, icono, incl_rectif = "Reparación", "🔧", False
     m_crap = st.sidebar.multiselect("Marcas de Crapodina:", ["Luk", "Skf", "Ina", "Dbh", "The"], default=["Luk", "Skf"])
@@ -75,41 +70,36 @@ st.sidebar.divider()
 detalle_final = st.sidebar.text_area("Detalle final para WhatsApp (editable):", value=sugerencia)
 label_item = "*Producto:*" if cat_f == "Venta" else "*Trabajo:*"
 
-# --- 🔍 DATOS DE CONTROL INTERNO ---
+# --- 🔍 USO INTERNO ---
 st.sidebar.divider()
-st.sidebar.write("📸 **Uso Interno del Taller**")
+st.sidebar.write("📸 **Uso Interno**")
 codigo_manual = st.sidebar.text_input("Código de repuesto / Kit:")
-foto = st.sidebar.file_uploader("Subir foto del trabajo/repuesto:", type=["jpg", "png", "jpeg"])
+foto = st.sidebar.file_uploader("Subir foto:", type=["jpg", "png", "jpeg"])
 if foto:
     st.sidebar.image(Image.open(foto), use_container_width=True)
 
-precio_compra = st.sidebar.number_input("Precio de COMPRA / Costo ($):", min_value=0, value=0)
+precio_compra = st.sidebar.number_input("Precio de COMPRA ($):", min_value=0, value=0)
 proveedor_input = st.sidebar.text_input("Proveedor:", "icepar")
 
-if st.sidebar.button("💾 GUARDAR VENTA"):
-    guardar_en_google(cat_f, cliente_input, vehiculo_input, detalle_final, monto_limpio, precio_compra, proveedor_input, codigo_manual, forma_pago_input)
-    st.sidebar.success(f"¡Venta de $ {monto_limpio:,.0f} guardada en la nube!")
+if st.sidebar.button("💾 GUARDAR PARA SIEMPRE"):
+    guardar_en_google(cat_f, cliente_input, vehiculo_input, detalle_final, monto_limpio, precio_compra, proveedor_input, codigo_manual, f_pago_input)
+    st.sidebar.success(f"¡Venta de $ {monto_limpio:,.0f} guardada!")
 
-# 3. CALCULADORA DE COBRO (Tasas BNA)
+# 3. COBRO BNA (Cálculos de tasas)
 st.markdown("### 💳 Cobro BNA (Más Pagos)")
-metodo = st.radio("Medio de Cobro:", ["Link de Pago", "POS Físico / QR"], horizontal=True)
-
+metodo = st.radio("Medio:", ["Link de Pago", "POS Físico / QR"], horizontal=True)
 r1, r3, r6 = (1.042, 1.12, 1.20) if metodo == "Link de Pago" else (1.033, 1.10, 1.18)
 t1, t3, t6 = monto_limpio * r1, monto_limpio * r3, monto_limpio * r6
 
 # 4. RESULTADOS DE PAGOS
 st.divider()
-st.success(f"### **💰 PRECIO CONTADO: $ {monto_limpio:,.0f}**")
+st.success(f"### **💰 CONTADO: $ {monto_limpio:,.0f}**")
 c1, c2, c3 = st.columns(3)
 with c1: st.metric("1 PAGO", f"$ {t1:,.0f}")
-with c2: 
-    st.metric("3 CUOTAS DE:", f"$ {t3/3:,.2f}")
-    st.caption(f"Total: $ {t3:,.0f}")
-with c3: 
-    st.metric("6 CUOTAS DE:", f"$ {t6/6:,.2f}")
-    st.caption(f"Total: $ {t6:,.0f}")
+with c2: st.metric("3 CUOTAS DE:", f"$ {t3/3:,.2f}")
+with c3: st.metric("6 CUOTAS DE:", f"$ {t6/6:,.2f}")
 
-# 5. MENSAJE PROFESIONAL DE WHATSAPP
+# 5. MENSAJE DE WHATSAPP PROFESIONAL
 maps_link = "http://googleusercontent.com/maps.google.com/search/Crespo+4117+Rosario"
 s = "‎" # Espacio invisible
 linea_rectif = f"✅  *Incluye rectificación y balanceo de volante*\n" if incl_rectif else ""
@@ -135,14 +125,14 @@ mensaje = (
 )
 
 link_wa = f"https://wa.me/?text={urllib.parse.quote(mensaje)}"
-st.link_button("🟢 ENVIAR PRESUPUESTO POR WHATSAPP", link_wa)
+st.link_button("🟢 ENVIAR POR WHATSAPP", link_wa)
 
-# 6. HISTORIAL DE MOVIMIENTOS
+# 6. HISTORIAL RÁPIDO
 st.divider()
-st.subheader("📋 Historial de Ventas y Trabajos")
+st.subheader("📋 Últimos Movimientos")
 try:
     df_ver = conn.read(worksheet="Ventas")
     if not df_ver.empty:
         st.dataframe(df_ver[::-1], use_container_width=True)
 except:
-    st.info("Conectando con el historial en Google Sheets...")
+    st.info("Sincronizando con Google Sheets...")
