@@ -4,3 +4,7 @@ openpyxl
 easyocr
 opencv-python-headless
 Pillow
+st-gsheets-connection
+pandas
+Pillow
+numpy
