@@ -6,7 +6,7 @@ import pandas as pd
 import os
 from datetime import datetime
 
-# 1. IDENTIDAD Y CONFIGURACIÓN (Logo en pestaña y app)
+# 1. IDENTIDAD Y CONFIGURACIÓN (Vuelve tu logo a la pestaña)
 st.set_page_config(page_title="Embragues Rosario", page_icon="logo.png")
 st.image("logo.png", width=300) 
 st.title("Embragues Rosario")
@@ -32,7 +32,7 @@ cliente_nombre = st.sidebar.text_input("Nombre del Cliente:", "Consumidor Final"
 
 tipo_kit = st.sidebar.selectbox("Tipo de Kit:", ["Nuevo", "Reparado completo con crapodina"])
 
-# Lógica dinámica fiel a tus pedidos
+# Lógica dinámica fiel a tus pedidos (balanceado / sin paréntesis)
 if tipo_kit == "Nuevo":
     marca_kit = st.sidebar.text_input("Marca del Kit Nuevo:", "Sachs")
     label_item, texto_detalle, icono = "*Embrague:*", f"KIT nuevo marca *{marca_kit}*", "⚙️"
@@ -40,18 +40,14 @@ if tipo_kit == "Nuevo":
 else:
     marcas_disponibles = ["Luk", "Skf", "Ina", "Dbh", "The"]
     marcas_elegidas = st.sidebar.multiselect("Marcas de Crapodina:", marcas_disponibles, default=["Luk", "Skf"])
-    
     m_negrita = [f"*{m}*" for m in marcas_elegidas]
     texto_marcas = ", ".join(m_negrita[:-1]) + " o " + m_negrita[-1] if len(m_negrita) > 1 else (m_negrita[0] if m_negrita else "*primera marca*")
-
-    label_item, texto_detalle, icono = "*Trabajo:*", f"reparado completo placa disco con forros originales volante rectificado y balanceado con crapodina {texto_marcas}"
+    label_item, texto_detalle, icono = "*Trabajo:*", f"reparado completo placa disco con forros originales volante rectificado y balanceado con crapodina {texto_marcas}", "🔧"
     incluye_rectif = False 
-    icono = "🔧"
 
 # --- 🔍 CONTROL DE STOCK (Carga Manual y Foto) ---
 st.sidebar.divider()
 st.sidebar.write("📸 **Control de Stock (Uso Interno)**")
-# Campo manual que faltaba
 codigo_manual = st.sidebar.text_input("Código de repuesto (Manual):")
 
 foto = st.sidebar.file_uploader("O subir foto de caja para código:", type=["jpg", "png", "jpeg"])
@@ -70,6 +66,7 @@ proveedor = st.sidebar.text_input("Proveedor:", "Repuestos Rosario")
 if st.sidebar.button("💾 GUARDAR OPERACIÓN"):
     guardar_operacion(cliente_nombre, vehiculo, texto_detalle, monto_limpio, precio_compra, proveedor, codigo_manual)
     st.sidebar.success(f"¡Venta de {vehiculo} guardada!")
+    st.rerun()
 
 # 3. CÁLCULOS DE COBRO
 st.markdown("### 💳 Cobro")
@@ -98,23 +95,39 @@ with c3:
     st.metric("6 CUOTAS DE:", f"$ {t6/6:,.2f}")
     st.caption(f"Total: $ {t6:,.0f}")
 
-# --- 📜 HISTORIAL (Lo más nuevo arriba) ---
+# --- 📜 HISTORIAL EDITABLE (Nuevo primero) ---
 st.divider()
-st.subheader("📋 Laburos Realizados (Nuevo primero)")
+st.subheader("📋 Laburos Realizados (Podés editar las celdas)")
 if os.path.isfile(ARCHIVO_INVENTARIO):
     df = pd.read_csv(ARCHIVO_INVENTARIO)
-    st.dataframe(df[::-1], use_container_width=True)
+    # Usamos st.data_editor para que puedas modificar el historial
+    # Invertimos para mostrar lo nuevo arriba, pero guardamos el editado
+    df_mostrado = df[::-1].reset_index(drop=True)
+    df_editado = st.data_editor(df_mostrado, use_container_width=True, num_rows="dynamic")
+    
+    col_hist1, col_hist2 = st.columns(2)
+    with col_hist1:
+        if st.button("💾 GUARDAR CAMBIOS EN HISTORIAL"):
+            # Al guardar, volvemos a invertir para mantener el orden cronológico en el CSV
+            df_final = df_editado[::-1].reset_index(drop=True)
+            df_final.to_csv(ARCHIVO_INVENTARIO, index=False)
+            st.success("¡Historial actualizado correctamente!")
+            st.rerun()
+            
+    with col_hist2:
+        if st.button("🗑️ Borrar Todo el Historial"):
+            os.remove(ARCHIVO_INVENTARIO)
+            st.rerun()
+            
     ganancia = df["Venta $"].sum() - df["Compra $"].sum()
     st.info(f"💰 **Ganancia Acumulada: $ {ganancia:,.2f}**")
-    if st.button("🗑️ Borrar Historial"):
-        os.remove(ARCHIVO_INVENTARIO)
-        st.rerun()
 else:
     st.info("No hay operaciones registradas.")
 
-# 5. WHATSAPP (Limpio para el cliente)
+# 5. WHATSAPP (Instagram Corregido)
 maps_link = "https://www.google.com/maps/search/Crespo+4117+Rosario"
-ig_link = "https://www.instagram.com/embraguesrosario/"
+# Link oficial de Embragues Rosario corregido
+ig_link = "https://www.instagram.com/embraguesrosario?igsh=MWsxNzI1MTN4ZWJ3eg=="
 s = "‎" # Espacio invisible
 
 linea_extra = f"✅  *Incluye rectificación y balanceo de volante*\n" if incluye_rectif else ""
@@ -141,4 +154,5 @@ mensaje = (
 )
 
 link_wa = f"https://wa.me/?text={urllib.parse.quote(mensaje)}"
+st.divider()
 st.link_button("🟢 ENVIAR POR WHATSAPP", link_wa)
