@@ -6,7 +6,7 @@ import pandas as pd
 import os
 from datetime import datetime
 
-# 1. IDENTIDAD Y CONFIGURACIÓN (Logo en pestaña y app)
+# 1. IDENTIDAD Y CONFIGURACIÓN (Vuelve tu logo a la pestaña)
 st.set_page_config(page_title="Embragues Rosario", page_icon="logo.png")
 st.image("logo.png", width=300) 
 st.title("Embragues Rosario")
@@ -32,7 +32,7 @@ cliente_nombre = st.sidebar.text_input("Nombre del Cliente:", "Consumidor Final"
 
 tipo_kit = st.sidebar.selectbox("Tipo de Kit:", ["Nuevo", "Reparado completo con crapodina"])
 
-# Lógica dinámica fiel a tus pedidos (KIT nuevo / balanceado / sin paréntesis)
+# Lógica dinámica según tus pedidos exactos (balanceado / sin paréntesis)
 if tipo_kit == "Nuevo":
     marca_kit = st.sidebar.text_input("Marca del Kit Nuevo:", "Sachs")
     label_item = "*Embrague:*"
@@ -59,7 +59,7 @@ codigo_manual = st.sidebar.text_input("Código de repuesto (Manual):")
 foto = st.sidebar.file_uploader("O subir foto de caja para código:", type=["jpg", "png", "jpeg"])
 if foto is not None:
     try:
-        # Arreglo para el ValueError de la foto (convertimos a array)
+        # Convertimos la imagen para evitar el ValueError que te salía
         img_pil = Image.open(foto)
         img_array = np.array(img_pil) 
         st.sidebar.image(img_pil, caption="Foto cargada correctamente", use_container_width=True)
@@ -98,7 +98,7 @@ with c1:
     st.metric("1 PAGO", f"$ {t1:,.0f}")
 with c2: 
     st.metric("3 CUOTAS DE:", f"$ {t3/3:,.2f}")
-    st.caption(f"Total: $ {t3:,.0f}") # Corregida la comilla que faltaba aquí
+    st.caption(f"Total: $ {t3:,.0f}")
 with c3: 
     st.metric("6 CUOTAS DE:", f"$ {t6/6:,.2f}")
     st.caption(f"Total: $ {t6:,.0f}")
@@ -118,10 +118,9 @@ else:
     st.info("No hay operaciones registradas.")
 
 # 5. WHATSAPP (Limpio para el cliente)
-# Corregida la llave del link de ubicación que faltaba cerrar
 maps_link = "https://www.google.com/maps/search/Crespo+4117+Rosario"
 ig_link = "https://www.instagram.com/embraguesrosario/"
-s = "\u200e" # Espacio invisible para evitar subrayados azules
+s = "‎" # Espacio invisible
 
 linea_extra = f"✅  *Incluye rectificación y balanceo de volante*\n" if incluye_rectif else ""
 
