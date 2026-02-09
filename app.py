@@ -6,7 +6,7 @@ import pandas as pd
 import os
 from datetime import datetime
 
-# 1. IDENTIDAD Y CONFIGURACIÓN (Vuelve tu logo a la pestaña)
+# 1. IDENTIDAD Y CONFIGURACIÓN
 st.set_page_config(page_title="Embragues Rosario", page_icon="logo.png")
 st.image("logo.png", width=300) 
 st.title("Embragues Rosario")
@@ -32,11 +32,14 @@ cliente_nombre = st.sidebar.text_input("Nombre del Cliente:", "Consumidor Final"
 
 tipo_kit = st.sidebar.selectbox("Tipo de Kit:", ["Nuevo", "Reparado completo con crapodina"])
 
-# Lógica dinámica según tus pedidos exactos
+# Lógica dinámica según tus pedidos
 if tipo_kit == "Nuevo":
     marca_kit = st.sidebar.text_input("Marca del Kit Nuevo:", "Sachs")
-    label_item, texto_detalle, icono = "*Embrague:*", f"KIT nuevo marca *{marca_kit}*", "⚙️"
+    # "Embrague:" en negrita y "KIT nuevo" como pediste
+    label_item = "*Embrague:*"
+    texto_detalle = f"KIT nuevo marca *{marca_kit}*"
     incluye_rectif = True 
+    icono = "⚙️"
 else:
     marcas_disponibles = ["Luk", "Skf", "Ina", "Dbh", "The"]
     marcas_elegidas = st.sidebar.multiselect("Marcas de Crapodina:", marcas_disponibles, default=["Luk", "Skf"])
@@ -44,22 +47,25 @@ else:
     m_negrita = [f"*{m}*" for m in marcas_elegidas]
     texto_marcas = ", ".join(m_negrita[:-1]) + " o " + m_negrita[-1] if len(m_negrita) > 1 else (m_negrita[0] if m_negrita else "*primera marca*")
 
-    label_item, texto_detalle, icono = "*Trabajo:*", f"reparado completo placa disco con forros originales volante rectificado y balanceado con crapodina {texto_marcas}", "🔧"
+    label_item = "*Trabajo:*"
+    # Sin paréntesis y con "balanceado"
+    texto_detalle = f"reparado completo placa disco con forros originales volante rectificado y balanceado con crapodina {texto_marcas}"
     incluye_rectif = False 
+    icono = "🔧"
 
 # --- 🔍 CONTROL DE STOCK (Carga Manual y Foto arreglada) ---
 st.sidebar.divider()
 st.sidebar.write("📸 **Control de Stock (Uso Interno)**")
+# Casillero manual que faltaba en la captura
 codigo_manual = st.sidebar.text_input("Código de repuesto (Manual):")
 
 foto = st.sidebar.file_uploader("O subir foto de caja para código:", type=["jpg", "png", "jpeg"])
 if foto is not None:
     try:
-        # Convertimos la imagen para evitar el ValueError que te salía
+        # Arreglo para el ValueError: convertimos la foto a array
         img_pil = Image.open(foto)
         img_array = np.array(img_pil) 
         st.sidebar.image(img_pil, caption="Foto cargada correctamente", use_container_width=True)
-        # Aquí la app ya puede leer el código sin trabarse
     except Exception:
         st.sidebar.error("Error al procesar la imagen.")
 
@@ -104,7 +110,7 @@ st.divider()
 st.subheader("📋 Laburos Realizados (Nuevo primero)")
 if os.path.isfile(ARCHIVO_INVENTARIO):
     df = pd.read_csv(ARCHIVO_INVENTARIO)
-    st.dataframe(df[::-1], use_container_width=True)
+    st.dataframe(df[::-1], use_container_width=True) # Muestra el último arriba
     ganancia = df["Venta $"].sum() - df["Compra $"].sum()
     st.info(f"💰 **Ganancia Acumulada: $ {ganancia:,.2f}**")
     if st.button("🗑️ Borrar Historial"):
@@ -113,9 +119,8 @@ if os.path.isfile(ARCHIVO_INVENTARIO):
 else:
     st.info("No hay operaciones registradas.")
 
-# 5. WHATSAPP (Limpio para el cliente)
-# Link de búsqueda directa para evitar errores de ubicación y vistas previas
-maps_link = "https://www.google.com/maps/search/Crespo+4117+Rosario"
+# 5. WHATSAPP (Limpio para el cliente y con link de ubicación directo)
+maps_link = "http://googleusercontent.com/maps.google.com/search/Crespo+4117+Rosario"
 ig_link = "https://www.instagram.com/embraguesrosario/"
 s = "‎" # Espacio invisible para evitar subrayados azules
 
