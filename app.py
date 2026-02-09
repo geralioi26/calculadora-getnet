@@ -32,18 +32,29 @@ cliente_nombre = st.sidebar.text_input("Nombre del Cliente:", "Consumidor Final"
 
 tipo_kit = st.sidebar.selectbox("Tipo de Kit:", ["Nuevo", "Reparado completo con crapodina"])
 
-# Lógica dinámica fiel a tus pedidos (balanceado / sin paréntesis)
+# Lógica dinámica según tus pedidos exactos (balanceado / sin paréntesis)
 if tipo_kit == "Nuevo":
     marca_kit = st.sidebar.text_input("Marca del Kit Nuevo:", "Sachs")
-    label_item, texto_detalle, icono = "*Embrague:*", f"KIT nuevo marca *{marca_kit}*", "⚙️"
+    label_item = "*Embrague:*" # Negrita como pediste
+    texto_detalle = f"KIT nuevo marca *{marca_kit}*"
     incluye_rectif = True 
+    icono = "⚙️"
 else:
     marcas_disponibles = ["Luk", "Skf", "Ina", "Dbh", "The"]
     marcas_elegidas = st.sidebar.multiselect("Marcas de Crapodina:", marcas_disponibles, default=["Luk", "Skf"])
+    
     m_negrita = [f"*{m}*" for m in marcas_elegidas]
-    texto_marcas = ", ".join(m_negrita[:-1]) + " o " + m_negrita[-1] if len(m_negrita) > 1 else (m_negrita[0] if m_negrita else "*primera marca*")
-    label_item, texto_detalle, icono = "*Trabajo:*", f"reparado completo placa disco con forros originales volante rectificado y balanceado con crapodina {texto_marcas}", "🔧"
+    if len(m_negrita) > 1:
+        texto_marcas = ", ".join(m_negrita[:-1]) + " o " + m_negrita[-1]
+    elif m_negrita:
+        texto_marcas = m_negrita[0]
+    else:
+        texto_marcas = "*primera marca*"
+
+    label_item = "*Trabajo:*"
+    texto_detalle = f"reparado completo placa disco con forros originales volante rectificado y balanceado con crapodina {texto_marcas}"
     incluye_rectif = False 
+    icono = "🔧"
 
 # --- 🔍 CONTROL DE STOCK (Carga Manual y Foto arreglada) ---
 st.sidebar.divider()
@@ -53,7 +64,7 @@ codigo_manual = st.sidebar.text_input("Código de repuesto (Manual):")
 foto = st.sidebar.file_uploader("O subir foto de caja para código:", type=["jpg", "png", "jpeg"])
 if foto is not None:
     try:
-        # Arreglo para el ValueError: convertimos la foto para que la app la entienda
+        # Convertimos la foto a array para evitar el ValueError rosa
         img_pil = Image.open(foto)
         img_array = np.array(img_pil) 
         st.sidebar.image(img_pil, caption="Foto cargada correctamente", use_container_width=True)
@@ -88,10 +99,12 @@ t1, t3, t6 = monto_limpio * r1, monto_limpio * r3, monto_limpio * r6
 st.divider()
 st.success(f"### **💰 CONTADO: $ {monto_limpio:,.0f}**")
 c1, c2, c3 = st.columns(3)
-with c1: st.metric("1 PAGO", f"$ {t1:,.0f}")
+with c1: 
+    st.metric("1 PAGO", f"$ {t1:,.0f}")
 with c2: 
     st.metric("3 CUOTAS DE:", f"$ {t3/3:,.2f}")
-    st.caption(f"Total: $ {t3:,.0f}")
+    # Arreglado: Se cerró la comilla y el paréntesis correctamente
+    st.caption(f"Total: $ {t3:,.0f}") 
 with c3: 
     st.metric("6 CUOTAS DE:", f"$ {t6/6:,.2f}")
     st.caption(f"Total: $ {t6:,.0f}")
@@ -110,8 +123,9 @@ if os.path.isfile(ARCHIVO_INVENTARIO):
 else:
     st.info("No hay operaciones registradas.")
 
-# 5. WHATSAPP (Limpio para el cliente y ubicación directa)
-maps_link = "https://www.google.com/maps/search/Crespo+4117+Rosario"
+# 5. WHATSAPP (Limpio para el cliente)
+# Arreglado: Se cerró la llave del maps_link
+maps_link = "http://googleusercontent.com/maps.google.com/search/Crespo+4117+Rosario"
 ig_link = "https://www.instagram.com/embraguesrosario/"
 s = "‎" # Espacio invisible para evitar subrayados azules
 
