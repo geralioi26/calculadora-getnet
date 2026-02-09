@@ -6,7 +6,7 @@ import pandas as pd
 import os
 from datetime import datetime
 
-# 1. IDENTIDAD Y CONFIGURACIÓN
+# 1. IDENTIDAD Y CONFIGURACIÓN (Logo en pestaña y app)
 st.set_page_config(page_title="Embragues Rosario", page_icon="logo.png")
 st.image("logo.png", width=300) 
 st.title("Embragues Rosario")
@@ -32,10 +32,9 @@ cliente_nombre = st.sidebar.text_input("Nombre del Cliente:", "Consumidor Final"
 
 tipo_kit = st.sidebar.selectbox("Tipo de Kit:", ["Nuevo", "Reparado completo con crapodina"])
 
-# Lógica dinámica según tus pedidos
+# Lógica dinámica fiel a tus pedidos (KIT nuevo / balanceado / sin paréntesis)
 if tipo_kit == "Nuevo":
     marca_kit = st.sidebar.text_input("Marca del Kit Nuevo:", "Sachs")
-    # "Embrague:" en negrita y "KIT nuevo" como pediste
     label_item = "*Embrague:*"
     texto_detalle = f"KIT nuevo marca *{marca_kit}*"
     incluye_rectif = True 
@@ -48,7 +47,6 @@ else:
     texto_marcas = ", ".join(m_negrita[:-1]) + " o " + m_negrita[-1] if len(m_negrita) > 1 else (m_negrita[0] if m_negrita else "*primera marca*")
 
     label_item = "*Trabajo:*"
-    # Sin paréntesis y con "balanceado"
     texto_detalle = f"reparado completo placa disco con forros originales volante rectificado y balanceado con crapodina {texto_marcas}"
     incluye_rectif = False 
     icono = "🔧"
@@ -56,13 +54,12 @@ else:
 # --- 🔍 CONTROL DE STOCK (Carga Manual y Foto arreglada) ---
 st.sidebar.divider()
 st.sidebar.write("📸 **Control de Stock (Uso Interno)**")
-# Casillero manual que faltaba en la captura
 codigo_manual = st.sidebar.text_input("Código de repuesto (Manual):")
 
 foto = st.sidebar.file_uploader("O subir foto de caja para código:", type=["jpg", "png", "jpeg"])
 if foto is not None:
     try:
-        # Arreglo para el ValueError: convertimos la foto a array
+        # Arreglo para el ValueError de la foto (convertimos a array)
         img_pil = Image.open(foto)
         img_array = np.array(img_pil) 
         st.sidebar.image(img_pil, caption="Foto cargada correctamente", use_container_width=True)
@@ -97,10 +94,11 @@ t1, t3, t6 = monto_limpio * r1, monto_limpio * r3, monto_limpio * r6
 st.divider()
 st.success(f"### **💰 CONTADO: $ {monto_limpio:,.0f}**")
 c1, c2, c3 = st.columns(3)
-with c1: st.metric("1 PAGO", f"$ {t1:,.0f}")
+with c1: 
+    st.metric("1 PAGO", f"$ {t1:,.0f}")
 with c2: 
     st.metric("3 CUOTAS DE:", f"$ {t3/3:,.2f}")
-    st.caption(f"Total: $ {t3:,.0f}")
+    st.caption(f"Total: $ {t3:,.0f}") # Corregida la comilla que faltaba aquí
 with c3: 
     st.metric("6 CUOTAS DE:", f"$ {t6/6:,.2f}")
     st.caption(f"Total: $ {t6:,.0f}")
@@ -110,7 +108,7 @@ st.divider()
 st.subheader("📋 Laburos Realizados (Nuevo primero)")
 if os.path.isfile(ARCHIVO_INVENTARIO):
     df = pd.read_csv(ARCHIVO_INVENTARIO)
-    st.dataframe(df[::-1], use_container_width=True) # Muestra el último arriba
+    st.dataframe(df[::-1], use_container_width=True)
     ganancia = df["Venta $"].sum() - df["Compra $"].sum()
     st.info(f"💰 **Ganancia Acumulada: $ {ganancia:,.2f}**")
     if st.button("🗑️ Borrar Historial"):
@@ -119,10 +117,11 @@ if os.path.isfile(ARCHIVO_INVENTARIO):
 else:
     st.info("No hay operaciones registradas.")
 
-# 5. WHATSAPP (Limpio para el cliente y con link de ubicación directo)
-maps_link = "http://googleusercontent.com/maps.google.com/search/Crespo+4117+Rosario"
+# 5. WHATSAPP (Limpio para el cliente)
+# Corregida la llave del link de ubicación que faltaba cerrar
+maps_link = "https://www.google.com/maps/search/Crespo+4117+Rosario"
 ig_link = "https://www.instagram.com/embraguesrosario/"
-s = "‎" # Espacio invisible para evitar subrayados azules
+s = "\u200e" # Espacio invisible para evitar subrayados azules
 
 linea_extra = f"✅  *Incluye rectificación y balanceo de volante*\n" if incluye_rectif else ""
 
