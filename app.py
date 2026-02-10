@@ -29,6 +29,7 @@ except Exception as e:
     st.stop()
 
 def guardar_en_google(cat, cliente, vehiculo, detalle, p_venta, p_compra, proveedor, codigo, f_pago):
+# Ajuste horario Argentina (Restamos 3hs)
     fecha_hoy = (datetime.now() - pd.Timedelta(hours=3)).strftime("%d/%m/%Y %H:%M")
     columnas = ["fecha", "categoria", "cliente", "vehiculo", "detalle", "venta $", "compra $", "proveedor", "codigo", "forma de pago"]
     
@@ -111,8 +112,7 @@ with c1: st.metric("1 PAGO", f"$ {t1:,.0f}")
 with c2: st.metric("3 CUOTAS", f"$ {t3/3:,.2f}")
 with c3: st.metric("6 CUOTAS", f"$ {t6/6:,.2f}")
 
-# 4. WHATSAPP PROFESIONAL (DISEÑO GERARDO)
-# Lógica para la línea de rectificación
+# 4. WHATSAPP (DISEÑO GERARDO)
 if incl_rectif:
     txt_rectif = "\n✅ *Incluye rectificación y balanceo de volante*"
 else:
@@ -124,7 +124,7 @@ mensaje = (
     f"🚗 *EMBRAGUES ROSARIO*\n"
     f"¡Hola! Gracias por tu consulta. Te paso el presupuesto:\n\n"
     f"🚗 *Vehículo:* {vehiculo_input}\n"
-    f"{icono} *Embrague:* {detalle_final}"
+    f"⚙️ *Embrague:* {detalle_final}"
     f"{txt_rectif}\n\n"
     f"💰 *EFECTIVO / TRANSF:* ${monto_limpio:,.0f}\n\n"
     f"💳 *TARJETA BANCARIA ({metodo}):*\n"
@@ -148,7 +148,7 @@ st.link_button("🟢 ENVIAR PRESUPUESTO POR WHATSAPP", link_wa)
 st.divider()
 st.subheader("📋 Últimos Movimientos")
 try:
-    # Usamos el LINK EXACTO que pusiste arriba en SHEET_URL
+    # ACÁ ASEGURATE DE QUE DIGA SHEET_URL (el que definiste arriba)
     df_ver = conn.read(spreadsheet=SHEET_URL, worksheet="Ventas", ttl=0)
     if not df_ver.empty:
         st.dataframe(df_ver.tail(5)[::-1], use_container_width=True)
