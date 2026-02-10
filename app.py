@@ -14,11 +14,14 @@ except:
 st.title("Embragues Rosario")
 st.markdown("Crespo 4117, Rosario | **IIBB: EXENTO**")
 
-# --- 🔗 LINK BLINDADO ---
-# Ponemos el link acá directo para que no falle nunca
-SHEET_URL = "https://docs.google.com/spreadsheets/d/1YJHJ006kr-izLHG9Ib5CRUX5VUdu6iNRDsKn4u0x32Y/edit"
+# ==========================================
+# 🚨 PEGA TU LINK ACÁ ABAJO ENTRE LAS COMILLAS
+# ==========================================
+SHEET_URL = "https://docs.google.com/spreadsheets/d/1YJHJ006kr-izLHG9Ib5CRUX5VUdu6INRDsKn4u0x32Y/edit?gid=0#gid=0" 
+# Ejemplo: "https://docs.google.com/spreadsheets/d/12345abcd/edit"
+# ==========================================
 
-# --- CONEXIÓN ---
+# --- CONEXIÓN SEGURA ---
 try:
     conn = st.connection("gsheets", type=GSheetsConnection)
 except Exception as e:
@@ -30,11 +33,13 @@ def guardar_en_google(cat, cliente, vehiculo, detalle, p_venta, p_compra, provee
     columnas = ["fecha", "categoria", "cliente", "vehiculo", "detalle", "venta $", "compra $", "proveedor", "codigo", "forma de pago"]
     
     try:
-        # Le pasamos el SHEET_URL explícitamente para obligarlo a usar este
+        # Usamos el LINK EXACTO que pusiste arriba
         df_existente = conn.read(spreadsheet=SHEET_URL, worksheet="Ventas", ttl=0)
-    except:
-        df_existente = pd.DataFrame(columns=columnas)
+    except Exception as e:
+        st.error(f"No encuentro la hoja. Revisá que el link sea correcto y que hayas compartido con el robot. Error: {e}")
+        st.stop()
     
+    # Aseguramos columnas
     for col in columnas:
         if col not in df_existente.columns:
             df_existente[col] = ""
@@ -44,7 +49,7 @@ def guardar_en_google(cat, cliente, vehiculo, detalle, p_venta, p_compra, provee
     
     df_actualizado = pd.concat([df_existente, nuevo_reg], ignore_index=True)
     
-    # Acá también forzamos el link
+    # Guardamos forzando el link
     conn.update(spreadsheet=SHEET_URL, worksheet="Ventas", data=df_actualizado)
 
 # 2. PANEL DE CARGA
@@ -65,12 +70,9 @@ elif "Reparación" in tipo_item:
     m_crap = st.sidebar.multiselect("Marcas de Crapodina:", ["Luk", "Skf", "Ina", "Dbh", "The"], default=["Luk", "Skf"])
     
     m_neg = [f"*{m}*" for m in m_crap]
-    if len(m_neg) > 1:
-        t_m = ", ".join(m_neg[:-1]) + " o " + m_neg[-1]
-    elif m_neg:
-        t_m = m_neg[0]
-    else:
-        t_m = "*primera marca*"
+    if len(m_neg) > 1: t_m = ", ".join(m_neg[:-1]) + " o " + m_neg[-1]
+    elif m_neg: t_m = m_neg[0]
+    else: t_m = "*primera marca*"
         
     sugerencia = f"reparado completo placa disco con forros originales volante rectificado y balanceado con crapodina {t_m}"
 else:
