@@ -29,7 +29,7 @@ except Exception as e:
     st.stop()
 
 def guardar_en_google(cat, cliente, vehiculo, detalle, p_venta, p_compra, proveedor, codigo, f_pago):
-    fecha_hoy = datetime.now().strftime("%d/%m/%Y %H:%M")
+    fecha_hoy = (datetime.now() - pd.Timedelta(hours=3)).strftime("%d/%m/%Y %H:%M")
     columnas = ["fecha", "categoria", "cliente", "vehiculo", "detalle", "venta $", "compra $", "proveedor", "codigo", "forma de pago"]
     
     try:
@@ -111,19 +111,36 @@ with c1: st.metric("1 PAGO", f"$ {t1:,.0f}")
 with c2: st.metric("3 CUOTAS", f"$ {t3/3:,.2f}")
 with c3: st.metric("6 CUOTAS", f"$ {t6/6:,.2f}")
 
-# 4. WHATSAPP
+# 4. WHATSAPP PROFESIONAL (DISEÑO GERARDO)
+# Lógica para la línea de rectificación
+if incl_rectif:
+    txt_rectif = "\n✅ *Incluye rectificación y balanceo de volante*"
+else:
+    txt_rectif = ""
+
 maps_link = "http://googleusercontent.com/maps.google.com/search/Crespo+4117+Rosario"
+
 mensaje = (
     f"🚗 *EMBRAGUES ROSARIO*\n"
-    f"Vehículo: {vehiculo_input}\n"
-    f"{icono} {label_item} {detalle_final}\n"
-    f"💰 EFECTIVO: ${monto_limpio:,.0f}\n\n"
-    f"💳 BNA:\n"
-    f"1 pago: ${t1:,.0f}\n"
-    f"3 cuotas: ${t3/3:,.2f}\n"
-    f"6 cuotas: ${t6/6:,.2f}\n\n"
-    f"📍 Ubicación: {maps_link}"
+    f"¡Hola! Gracias por tu consulta. Te paso el presupuesto:\n\n"
+    f"🚗 *Vehículo:* {vehiculo_input}\n"
+    f"{icono} *Embrague:* {detalle_final}"
+    f"{txt_rectif}\n\n"
+    f"💰 *EFECTIVO / TRANSF:* ${monto_limpio:,.0f}\n\n"
+    f"💳 *TARJETA BANCARIA ({metodo}):*\n"
+    f"✅ *1 pago:* ${t1:,.0f}\n"
+    f"✅ *3 cuotas de:* ${t3/3:,.2f}\n"
+    f"     (Total: ${t3:,.0f})\n\n"
+    f"✅ *6 cuotas de:* ${t6/6:,.2f}\n"
+    f"     (Total: ${t6:,.0f})\n\n"
+    f"📍 *Dirección:* Crespo 4117, Rosario\n"
+    f"📍 *Ubicación:* {maps_link}\n"
+    f"📸 *Instagram:* *@embraguesrosario*\n"
+    f"     https://www.instagram.com/embraguesrosario/\n"
+    f"⏰ *Horario:* 8:30 a 17:00 hs\n\n"
+    f"¡Te esperamos pronto! 🙋🏻"
 )
+
 link_wa = f"https://wa.me/?text={urllib.parse.quote(mensaje)}"
 st.link_button("🟢 ENVIAR PRESUPUESTO POR WHATSAPP", link_wa)
 
@@ -131,6 +148,7 @@ st.link_button("🟢 ENVIAR PRESUPUESTO POR WHATSAPP", link_wa)
 st.divider()
 st.subheader("📋 Últimos Movimientos")
 try:
+    # Usamos el LINK EXACTO que pusiste arriba en SHEET_URL
     df_ver = conn.read(spreadsheet=SHEET_URL, worksheet="Ventas", ttl=0)
     if not df_ver.empty:
         st.dataframe(df_ver.tail(5)[::-1], use_container_width=True)
