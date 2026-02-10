@@ -5,17 +5,20 @@ from streamlit_gsheets import GSheetsConnection
 import urllib.parse
 from PIL import Image
 
-# 1. IDENTIDAD Y CONFIGURACIÓN
+# 1. IDENTIDAD
 st.set_page_config(page_title="Embragues Rosario", page_icon="logo.png")
 try:
     st.image("logo.png", width=300)
 except:
-    st.write("🔧") # Por si no carga la imagen
+    pass
 st.title("Embragues Rosario")
 st.markdown("Crespo 4117, Rosario | **IIBB: EXENTO**")
 
-# --- CONEXIÓN SEGURA A SECRETS ---
-# Ahora que el botón azul funcionó, esto se conecta solo.
+# --- 🔗 LINK BLINDADO ---
+# Ponemos el link acá directo para que no falle nunca
+SHEET_URL = "https://docs.google.com/spreadsheets/d/1YJHJ006kr-izLHG9Ib5CRUX5VUdu6iNRDsKn4u0x32Y/edit"
+
+# --- CONEXIÓN ---
 try:
     conn = st.connection("gsheets", type=GSheetsConnection)
 except Exception as e:
@@ -24,16 +27,14 @@ except Exception as e:
 
 def guardar_en_google(cat, cliente, vehiculo, detalle, p_venta, p_compra, proveedor, codigo, f_pago):
     fecha_hoy = datetime.now().strftime("%d/%m/%Y %H:%M")
-    # Las 10 columnas exactas de tu Excel
     columnas = ["fecha", "categoria", "cliente", "vehiculo", "detalle", "venta $", "compra $", "proveedor", "codigo", "forma de pago"]
     
     try:
-        # ttl=0 para que actualice al instante
-        df_existente = conn.read(worksheet="Ventas", ttl=0)
+        # Le pasamos el SHEET_URL explícitamente para obligarlo a usar este
+        df_existente = conn.read(spreadsheet=SHEET_URL, worksheet="Ventas", ttl=0)
     except:
         df_existente = pd.DataFrame(columns=columnas)
     
-    # Aseguramos que existan todas las columnas
     for col in columnas:
         if col not in df_existente.columns:
             df_existente[col] = ""
@@ -42,19 +43,19 @@ def guardar_en_google(cat, cliente, vehiculo, detalle, p_venta, p_compra, provee
                              columns=columnas)
     
     df_actualizado = pd.concat([df_existente, nuevo_reg], ignore_index=True)
-    conn.update(worksheet="Ventas", data=df_actualizado)
+    
+    # Acá también forzamos el link
+    conn.update(spreadsheet=SHEET_URL, worksheet="Ventas", data=df_actualizado)
 
 # 2. PANEL DE CARGA
 st.sidebar.header("⚙️ Configuración")
 
-# Primero definimos el tipo para la lógica de sugerencias
 tipo_item = st.sidebar.selectbox("Tipo de Trabajo:", 
                                 ["Embrague Nuevo (Venta)", 
                                  "Reparación de Embrague", 
                                  "Kit de Distribución",
                                  "Otro"])
 
-# Lógica inteligente del Taller
 if "Nuevo" in tipo_item:
     cat_f, icono, incl_rectif = "Venta", "⚙️", True
     m_kit = st.sidebar.text_input("Marca del Kit:", "Sachs")
@@ -63,7 +64,6 @@ elif "Reparación" in tipo_item:
     cat_f, icono, incl_rectif = "Reparación", "🔧", False
     m_crap = st.sidebar.multiselect("Marcas de Crapodina:", ["Luk", "Skf", "Ina", "Dbh", "The"], default=["Luk", "Skf"])
     
-    # Armado del texto de marcas
     m_neg = [f"*{m}*" for m in m_crap]
     if len(m_neg) > 1:
         t_m = ", ".join(m_neg[:-1]) + " o " + m_neg[-1]
@@ -77,7 +77,6 @@ else:
     cat_f, icono, incl_rectif = "Venta", "🛠️", False
     sugerencia = "KIT de distribución"
 
-# Inputs de datos
 monto_limpio = st.sidebar.number_input("Precio de VENTA ($):", min_value=0, value=0)
 vehiculo_input = st.sidebar.text_input("Vehículo:", "citroen c4 1.6")
 cliente_input = st.sidebar.text_input("Nombre del Cliente:", "Consumidor Final")
@@ -93,7 +92,6 @@ codigo_manual = st.sidebar.text_input("Código de repuesto:", "")
 precio_compra = st.sidebar.number_input("Precio de COMPRA ($):", min_value=0, value=0)
 proveedor_input = st.sidebar.text_input("Proveedor:", "icepar")
 
-# BOTÓN DE GUARDADO
 if st.sidebar.button("💾 GUARDAR VENTA"):
     guardar_en_google(cat_f, cliente_input, vehiculo_input, detalle_final, monto_limpio, precio_compra, proveedor_input, codigo_manual, f_pago_input)
     st.sidebar.success(f"¡Venta de $ {monto_limpio:,.0f} guardada!")
@@ -111,7 +109,7 @@ with c1: st.metric("1 PAGO", f"$ {t1:,.0f}")
 with c2: st.metric("3 CUOTAS", f"$ {t3/3:,.2f}")
 with c3: st.metric("6 CUOTAS", f"$ {t6/6:,.2f}")
 
-# 4. WHATSAPP PROFESIONAL
+# 4. WHATSAPP
 maps_link = "http://googleusercontent.com/maps.google.com/search/Crespo+4117+Rosario"
 mensaje = (
     f"🚗 *EMBRAGUES ROSARIO*\n"
@@ -131,9 +129,8 @@ st.link_button("🟢 ENVIAR PRESUPUESTO POR WHATSAPP", link_wa)
 st.divider()
 st.subheader("📋 Últimos Movimientos")
 try:
-    df_ver = conn.read(worksheet="Ventas", ttl=0)
+    df_ver = conn.read(spreadsheet=SHEET_URL, worksheet="Ventas", ttl=0)
     if not df_ver.empty:
-        # Mostramos las últimas 5 invertidas para ver lo nuevo arriba
         st.dataframe(df_ver.tail(5)[::-1], use_container_width=True)
 except:
     st.info("Conectando con Google Sheets...")
