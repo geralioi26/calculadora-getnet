@@ -68,9 +68,9 @@ def actualizar_catalogo_kits(vehiculo, codigo, precio, marca):
 
 
 def guardar_en_google(categoria, cliente, vehiculo, detalle, monto, costo, proveedor, codigo, f_pago, e_cliente, e_prov, m_forros, c_forros, costo_f):
-# Ajuste horario Argentina
+    # Ajuste horario Argentina
     fecha_hoy = (datetime.now() - timedelta(hours=3)).strftime("%d/%m/%Y %H:%M")
-   columnas = ["Fecha", "Categoría", "Cliente", "Vehículo", "Detalle", "Monto", "Costo", "Proveedor", "Código", "Forma_Pago", "Estado_Cliente", "Estado_Pago_Prov", "Marca_Forros", "Cod_Forros", "Costo_Forros"]
+    columnas = ["Fecha", "Categoría", "Cliente", "Vehículo", "Detalle", "Monto", "Costo", "Proveedor", "Código", "Forma_Pago", "Estado_Cliente", "Estado_Pago_Prov", "Marca_Forros", "Cod_Forros", "Costo_Forros"]
     
     try:
         # Usamos el LINK EXACTO que pusiste arriba
@@ -338,6 +338,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
