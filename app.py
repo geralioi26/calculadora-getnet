@@ -114,8 +114,17 @@ if "Nuevo" in tipo_item:
     m_kit = st.sidebar.selectbox("Marca del Kit:", lista_marcas)
     sugerencia = f"KIT nuevo marca *{m_kit}*"
 elif "Reparación" in tipo_item:
-    cat_f, icono, incl_rectif = "Reparación", "🔧", False
-    m_crap = st.sidebar.multiselect("Marcas de Crapodina:", ["Luk", "Skf", "Ina", "Dbh", "The"], default=["Luk", "Skf"])
+        cat_f, icono, incl_rectif = "Reparación", "🔧", False
+        m_crap = st.sidebar.multiselect("Marcas de Crapodina:", ["Luk", "Skf", "Ina", "Dbh", "The"], default=["Luk", "Skf"])
+        
+        # --- CAMPOS DE COSTO INTERNO (NUEVO) ---
+        crap_codigo = st.sidebar.text_input("Código de Crapodina:", "")
+        crap_costo = st.sidebar.number_input("Costo de Crapodina ($):", min_value=0, value=0)
+
+        # --- DATOS DE LOS FORROS ---
+        m_forros = st.sidebar.selectbox("Marca de Forros:", ["IAR", "Fras-le", "Termolite", "Otro"])
+        forros_codigo = st.sidebar.text_input("Código de Forros:", "")
+        forros_costo = st.sidebar.number_input("Costo de Forros ($):", min_value=0, value=0)
     
     m_neg = [f"*{m}*" for m in m_crap]
     if len(m_neg) > 1: t_m = ", ".join(m_neg[:-1]) + " o " + m_neg[-1]
@@ -139,7 +148,13 @@ label_item = "*Producto:*" if cat_f == "Venta" else "*Trabajo:*"
 st.sidebar.divider()
 st.sidebar.write("📸 **Uso Interno**")
 codigo_manual = st.sidebar.text_input("Código de repuesto:", "")
-precio_compra = st.sidebar.number_input("Precio de COMPRA ($):", min_value=0, value=0)
+# --- CARGAR FOTO (USA LA CÁMARA EN EL CELU) ---
+        foto_repuesto = st.sidebar.file_uploader("📷 Sacar foto a la caja/repuesto", type=["jpg", "png", "jpeg"])
+        if foto_repuesto:
+            st.sidebar.image(foto_repuesto, caption="Vista previa del repuesto", use_container_width=True)
+# Si es reparación, el costo de compra es lo que salió la crapodina
+        valor_defecto_compra = crap_costo if "Reparación" in tipo_item else 0
+        precio_compra = st.sidebar.number_input("Precio de COMPRA ($):", min_value=0, value=valor_defecto_compra)
 proveedor_input = st.sidebar.text_input("Proveedor:", "icepar")
 # --- SECCIÓN: ESTADOS DE PAGO (NUEVO) ---
 st.sidebar.divider()
@@ -325,6 +340,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
