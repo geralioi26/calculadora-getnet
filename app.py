@@ -151,7 +151,7 @@ codigo_manual = st.sidebar.text_input("Código de repuesto:", "")
 # --- CARGAR FOTO (USA LA CÁMARA EN EL CELU) ---
 foto_repuesto = st.sidebar.file_uploader("📷 Sacar foto a la caja/repuesto", type=["jpg", "png", "jpeg"])
 if foto_repuesto:
-st.sidebar.image(foto_repuesto, caption="Vista previa del repuesto", use_container_width=True)
+    st.sidebar.image(foto_repuesto, caption="Vista previa del repuesto", use_container_width=True)
 # Si es reparación, el costo de compra es lo que salió la crapodina
 valor_defecto_compra = crap_costo if "Reparación" in tipo_item else 0
 precio_compra = st.sidebar.number_input("Precio de COMPRA ($):", min_value=0, value=valor_defecto_compra)
@@ -340,6 +340,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
