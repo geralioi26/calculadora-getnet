@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from streamlit_gsheets import GSheetsConnection
 import urllib.parse
 from PIL import Image
@@ -29,8 +29,8 @@ except Exception as e:
     st.stop()
 
 def guardar_en_google(cat, cliente, vehiculo, detalle, p_venta, p_compra, proveedor, codigo, f_pago):
-# Ajuste horario Argentina (Restamos 3hs)
-    fecha_hoy = (datetime.now() - pd.Timedelta(hours=3)).strftime("%d/%m/%Y %H:%M")
+# Ajuste horario Argentina
+    fecha_hoy = (datetime.now() - timedelta(hours=3)).strftime("%d/%m/%Y %H:%M")
     columnas = ["fecha", "categoria", "cliente", "vehiculo", "detalle", "venta $", "compra $", "proveedor", "codigo", "forma de pago"]
     
     try:
@@ -98,41 +98,79 @@ proveedor_input = st.sidebar.text_input("Proveedor:", "icepar")
 if st.sidebar.button("💾 GUARDAR VENTA"):
     guardar_en_google(cat_f, cliente_input, vehiculo_input, detalle_final, monto_limpio, precio_compra, proveedor_input, codigo_manual, f_pago_input)
     st.sidebar.success(f"¡Venta de $ {monto_limpio:,.0f} guardada!")
+# 3. CALCULADORA MULTI-POS (GETNET vs MÁS PAGOS)
+st.markdown("### 💳 Calculadora de Cuotas")
 
-# 3. CALCULADORA BNA
-st.markdown("### 💳 Cobro BNA (Más Pagos)")
-metodo = st.radio("Medio de Cobro:", ["Link de Pago", "POS Físico / QR"], horizontal=True)
-r1, r3, r6 = (1.042, 1.12, 1.20) if metodo == "Link de Pago" else (1.033, 1.10, 1.18)
-t1, t3, t6 = monto_limpio * r1, monto_limpio * r3, monto_limpio * r6
+# Selector de POSNET
+tipo_pos = st.radio("¿Qué POS vas a usar?", ["GETNET (Plan MiPyME)", "MÁS PAGOS (BNA)"], horizontal=True)
+
+# Check de Link de Pago
+es_link = st.checkbox("🔗 Es Link de Pago (+1% costo extra)")
+extra_link = 1.01 if es_link else 1.00
+
+# COEFICIENTES BASE (Interés + Comisión + IVA)
+if "GETNET" in tipo_pos:
+    # Getnet: Comisión Venta ~2% + IVA
+    # Recargos Finales: 1(2.5%), 3(11.3%), 6(20.5%), 9(42.4%), 12(56.2%)
+    c1, c3, c6, c9, c12 = 1.025, 1.113, 1.205, 1.424, 1.562
+    nombre_pos = "GETNET"
+else:
+    # Más Pagos: Comisión Venta ~3% + IVA
+    # Recargos Finales: 1(3.8%), 3(12.7%), 6(21.9%), 9(44.2%), 12(58.2%)
+    c1, c3, c6, c9, c12 = 1.038, 1.127, 1.219, 1.442, 1.582
+    nombre_pos = "MÁS PAGOS"
+
+# Calculamos los Totales (Precio Limpio * Coeficiente * Extra Link)
+t1 = monto_limpio * c1 * extra_link
+t3 = monto_limpio * c3 * extra_link
+t6 = monto_limpio * c6 * extra_link
+t9 = monto_limpio * c9 * extra_link
+t12 = monto_limpio * c12 * extra_link
 
 st.divider()
-st.success(f"### **💰 CONTADO: $ {monto_limpio:,.0f}**")
-c1, c2, c3 = st.columns(3)
-with c1: st.metric("1 PAGO", f"$ {t1:,.0f}")
-with c2: st.metric("3 CUOTAS", f"$ {t3/3:,.2f}")
-with c3: st.metric("6 CUOTAS", f"$ {t6/6:,.2f}")
+# PRECIO CONTADO DESTACADO (Tu pedido: que llame la atención)
+st.markdown(f"""
+    <div style='background-color: #d4edda; padding: 10px; border-radius: 5px; text-align: center; border: 2px solid #28a745;'>
+        <h2 style='color: #155724; margin:0;'>💰 CONTADO / TRANSF: $ {monto_limpio:,.0f}</h2>
+        <p style='margin:0; font-size: 0.9em;'>(Este monto te queda limpio)</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-# 4. WHATSAPP (DISEÑO GERARDO)
+st.write(f"**Precios de Lista con {nombre_pos}** {'(Link)' if es_link else '(Físico)'}:")
+
+col_a, col_b, col_c = st.columns(3)
+with col_a: st.metric("1 PAGO", f"$ {t1:,.0f}")
+with col_b: st.metric("3 CUOTAS", f"$ {t3/3:,.2f}", f"Total: ${t3:,.0f}")
+with col_c: st.metric("6 CUOTAS", f"$ {t6/6:,.2f}", f"Total: ${t6:,.0f}")
+
+col_d, col_e = st.columns(2)
+with col_d: st.metric("9 CUOTAS", f"$ {t9/9:,.2f}", f"Total: ${t9:,.0f}")
+with col_e: st.metric("12 CUOTAS", f"$ {t12/12:,.2f}", f"Total: ${t12:,.0f}")
+
+# 4. WHATSAPP (DISEÑO GERARDO + DATOS POS)
 if incl_rectif:
     txt_rectif = "\n✅ *Incluye rectificación y balanceo de volante*"
 else:
     txt_rectif = ""
 
 maps_link = "http://googleusercontent.com/maps.google.com/search/Crespo+4117+Rosario"
+metodo_txt = f"{nombre_pos} {'(Link)' if es_link else '(Posnet)'}"
 
 mensaje = (
     f"🚗 *EMBRAGUES ROSARIO*\n"
     f"¡Hola! Gracias por tu consulta. Te paso el presupuesto:\n\n"
     f"🚗 *Vehículo:* {vehiculo_input}\n"
-    f"⚙️ *Embrague:* {detalle_final}"
+    f"{icono} *Embrague:* {detalle_final}"
     f"{txt_rectif}\n\n"
     f"💰 *EFECTIVO / TRANSF:* ${monto_limpio:,.0f}\n\n"
-    f"💳 *TARJETA BANCARIA ({metodo}):*\n"
+    f"💳 *TARJETA BANCARIA ({metodo_txt}):*\n"
     f"✅ *1 pago:* ${t1:,.0f}\n"
     f"✅ *3 cuotas de:* ${t3/3:,.2f}\n"
     f"     (Total: ${t3:,.0f})\n\n"
     f"✅ *6 cuotas de:* ${t6/6:,.2f}\n"
     f"     (Total: ${t6:,.0f})\n\n"
+    f"✅ *12 cuotas de:* ${t12/12:,.2f}\n"
+    f"     (Total: ${t12:,.0f})\n\n"
     f"📍 *Dirección:* Crespo 4117, Rosario\n"
     f"📍 *Ubicación:* {maps_link}\n"
     f"📸 *Instagram:* *@embraguesrosario*\n"
@@ -143,14 +181,3 @@ mensaje = (
 
 link_wa = f"https://wa.me/?text={urllib.parse.quote(mensaje)}"
 st.link_button("🟢 ENVIAR PRESUPUESTO POR WHATSAPP", link_wa)
-
-# 5. HISTORIAL
-st.divider()
-st.subheader("📋 Últimos Movimientos")
-try:
-    # ACÁ ASEGURATE DE QUE DIGA SHEET_URL (el que definiste arriba)
-    df_ver = conn.read(spreadsheet=SHEET_URL, worksheet="Ventas", ttl=0)
-    if not df_ver.empty:
-        st.dataframe(df_ver.tail(5)[::-1], use_container_width=True)
-except:
-    st.info("Conectando con Google Sheets...")
