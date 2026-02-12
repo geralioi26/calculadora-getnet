@@ -211,19 +211,3 @@ try:
         st.info("La planilla está vacía todavía.")
 except Exception as e:
     st.info("Conectando con Google Sheets...")
-
-# --- PRUEBA DE CONEXIÓN (BORRAR DESPUÉS) ---
-st.divider()
-st.subheader("🧪 TEST DE CONEXIÓN")
-st.write("Si ves las tablas vacías acá abajo, es que conectó perfecto:")
-
-st.caption("📂 Catálogo de KITS:")
-st.dataframe(df_kits)
-
-st.caption("📂 Catálogo de CRAPODINAS:")
-st.dataframe(df_crapo)
-
-st.caption("📂 Catálogo de DISTRIBUCIÓN:")
-st.dataframe(df_distri)
-
-
