@@ -127,11 +127,11 @@ elif "Reparación" in tipo_item:
         forros_costo = st.sidebar.number_input("Costo de Forros ($):", min_value=0, value=0)
     
         m_neg = [f"*{m}*" for m in m_crap]
-    if len(m_neg) > 1: t_m = ", ".join(m_neg[:-1]) + " o " + m_neg[-1]
-    elif m_neg: t_m = m_neg[0]
-    else: t_m = "*primera marca*"
+        if len(m_neg) > 1: t_m = ", ".join(m_neg[:-1]) + " o " + m_neg[-1]
+        elif m_neg: t_m = m_neg[0]
+        else: t_m = "*primera marca*"
         
-    sugerencia = f"reparado completo placa disco con forros originales volante rectificado y balanceado con crapodina {t_m}"
+        sugerencia = f"reparado completo placa disco con forros originales volante rectificado y balanceado con crapodina {t_m}"
 else:
     cat_f, icono, incl_rectif = "Venta", "🛠️", False
     sugerencia = "KIT de distribución"
@@ -340,6 +340,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
