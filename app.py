@@ -38,6 +38,35 @@ try:
 except:
     st.warning("⚠️ Todavía no pude leer los catálogos. (Si recién creaste las hojas, dame unos segundos)")
 
+# --- FUNCIÓN AUXILIAR: GUARDAR EN CATÁLOGO ---
+def actualizar_catalogo_kits(vehiculo, codigo, precio, marca):
+    try:
+        # 1. Leemos el catálogo actual
+        df_kits = conn.read(spreadsheet=SHEET_URL, worksheet="Catalogo_Kits", ttl=0)
+        
+        # 2. Creamos una fila nueva vacía
+        nueva_fila = {col: "" for col in df_kits.columns}
+        nueva_fila["Vehiculo"] = vehiculo
+        
+        # 3. Llenamos la columna EXACTA de la marca
+        col_codigo = f"Codigo_{marca}"
+        col_precio = f"Precio_{marca}"
+        
+        if col_codigo in nueva_fila:
+            nueva_fila[col_codigo] = codigo
+            nueva_fila[col_precio] = precio
+            
+            # 4. Guardamos
+            df_nuevo = pd.DataFrame([nueva_fila])
+            df_final = pd.concat([df_kits, df_nuevo], ignore_index=True)
+            conn.update(spreadsheet=SHEET_URL, worksheet="Catalogo_Kits", data=df_final)
+            st.toast(f"✅ Catálogo actualizado: {marca} guardado!", icon="📒")
+        else:
+            st.warning(f"⚠️ No encontré la columna '{col_codigo}' en el Excel.")
+    except Exception as e:
+        st.error(f"Error al guardar en catálogo: {e}")
+
+
 def guardar_en_google(cat, cliente, vehiculo, detalle, p_venta, p_compra, proveedor, codigo, f_pago):
 # Ajuste horario Argentina
     fecha_hoy = (datetime.now() - timedelta(hours=3)).strftime("%d/%m/%Y %H:%M")
@@ -264,6 +293,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
