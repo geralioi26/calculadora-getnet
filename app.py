@@ -126,7 +126,7 @@ elif "Reparación" in tipo_item:
         forros_codigo = st.sidebar.text_input("Código de Forros:", "")
         forros_costo = st.sidebar.number_input("Costo de Forros ($):", min_value=0, value=0)
     
-    m_neg = [f"*{m}*" for m in m_crap]
+        m_neg = [f"*{m}*" for m in m_crap]
     if len(m_neg) > 1: t_m = ", ".join(m_neg[:-1]) + " o " + m_neg[-1]
     elif m_neg: t_m = m_neg[0]
     else: t_m = "*primera marca*"
@@ -340,6 +340,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
