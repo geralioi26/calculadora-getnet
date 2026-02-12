@@ -92,8 +92,14 @@ def guardar_en_google(cat, cliente, vehiculo, detalle, p_venta, p_compra, provee
     # Guardamos forzando el link
     conn.update(spreadsheet=SHEET_URL, worksheet="Ventas", data=df_actualizado)
 
+# --- GATILLO INTELIGENTE: Si hay marca, guarda en catálogo ---
+    if vehiculo and codigo and p_venta and m_kit:
+        actualizar_catalogo_kits(vehiculo, codigo, p_venta, m_kit)
+
 # 2. PANEL DE CARGA
 st.sidebar.header("⚙️ Configuración")
+
+m_kit = None  # Limpiamos la variable por seguridad
 
 tipo_item = st.sidebar.selectbox("Tipo de Trabajo:", 
                                 ["Embrague Nuevo (Venta)", 
@@ -293,6 +299,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
