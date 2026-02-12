@@ -144,15 +144,24 @@ detalle_final = st.sidebar.text_area("Detalle final (editable):", value=sugerenc
 label_item = "*Producto:*" if cat_f == "Venta" else "*Trabajo:*"
 
 st.sidebar.divider()
+st.sidebar.divider()
 st.sidebar.write("📸 **Uso Interno**")
-codigo_manual = st.sidebar.text_input("Código de repuesto:", "")
-# --- CARGAR FOTO (USA LA CÁMARA EN EL CELU) ---
-foto_repuesto = st.sidebar.file_uploader("📷 Sacar foto a la caja/repuesto", type=["jpg", "png", "jpeg"])
-if foto_repuesto:
-    st.sidebar.image(foto_repuesto, caption="Vista previa del repuesto", use_container_width=True)
-# Si es reparación, el costo de compra es lo que salió la crapodina
-valor_defecto_compra = crap_costo if "Reparación" in tipo_item else 0
-precio_compra = st.sidebar.number_input("Precio de COMPRA ($):", min_value=0, value=valor_defecto_compra)
+
+# --- LÓGICA INTELIGENTE DE COSTOS Y CÓDIGOS ---
+if cat_f == "Reparación":
+    # Si es reparación, el código es el de la crapodina y el costo es la suma de materiales
+    codigo_manual = crap_codigo
+    precio_compra = crap_costo + forros_costo
+    st.sidebar.info(f"💰 Costo Total Materiales: ${precio_compra:,.0f}")
+else:
+    # Si es venta, te pide los datos como siempre
+    codigo_manual = st.sidebar.text_input("Código de repuesto:", "")
+    precio_compra = st.sidebar.number_input("Precio de COMPRA ($):", min_value=0, value=0)
+
+# --- CÁLCULO DE GANANCIA EN PANTALLA ---
+if monto_limpio > 0:
+    ganancia = monto_limpio - precio_compra
+    st.sidebar.metric("Ganancia Estimada", f"$ {ganancia:,.0f}")
 proveedor_input = st.sidebar.text_input("Proveedor:", "icepar")
 # --- SECCIÓN: ESTADOS DE PAGO (NUEVO) ---
 st.sidebar.divider()
@@ -338,6 +347,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
