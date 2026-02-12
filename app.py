@@ -67,10 +67,10 @@ def actualizar_catalogo_kits(vehiculo, codigo, precio, marca):
         st.error(f"Error al guardar en catálogo: {e}")
 
 
-def guardar_en_google(cat, cliente, vehiculo, detalle, p_venta, p_compra, proveedor, codigo, f_pago):
+def guardar_en_google(cat, cliente, vehiculo, detalle, p_venta, p_compra, proveedor, codigo, f_pago, e_cliente, e_prov):
 # Ajuste horario Argentina
     fecha_hoy = (datetime.now() - timedelta(hours=3)).strftime("%d/%m/%Y %H:%M")
-    columnas = ["fecha", "categoria", "cliente", "vehiculo", "detalle", "venta $", "compra $", "proveedor", "codigo", "forma de pago"]
+    columnas = ["fecha", "categoria", "cliente", "vehiculo", "detalle", "venta $", "compra $", "proveedor", "codigo", "forma de pago", "Estado_Cobro", "Estado_Pago_Prov"]
     
     try:
         # Usamos el LINK EXACTO que pusiste arriba
@@ -84,8 +84,8 @@ def guardar_en_google(cat, cliente, vehiculo, detalle, p_venta, p_compra, provee
         if col not in df_existente.columns:
             df_existente[col] = ""
 
-    nuevo_reg = pd.DataFrame([[fecha_hoy, cat, cliente, vehiculo, detalle, p_venta, p_compra, proveedor, codigo, f_pago]], 
-                             columns=columnas)
+    nuevo_reg = pd.DataFrame([[fecha_hoy, cat, cliente, vehiculo, detalle, p_venta, p_compra, proveedor, codigo, f_pago, e_cliente, e_prov]],
+                                columns=columnas)
     
     df_actualizado = pd.concat([df_existente, nuevo_reg], ignore_index=True)
     
@@ -169,7 +169,7 @@ estado_p_prov = st.sidebar.selectbox(
 )
         
 if st.sidebar.button("💾 GUARDAR VENTA"):
-    guardar_en_google(cat_f, cliente_input, vehiculo_input, detalle_final, monto_limpio, precio_compra, proveedor_input, codigo_manual, f_pago_input)
+    guardar_en_google(cat_f, cliente_input, vehiculo_input, detalle_final, monto_limpio, precio_compra, proveedor_input, codigo_manual, f_pago_input, estado_cliente, estado_p_prov)
     st.sidebar.success(f"¡Venta de $ {monto_limpio:,.0f} guardada!")
 # 3. CALCULADORA MULTI-POS (GETNET vs MÁS PAGOS)
 st.markdown("### 💳 Calculadora de Cuotas")
@@ -325,6 +325,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
