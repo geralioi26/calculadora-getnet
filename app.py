@@ -67,10 +67,10 @@ def actualizar_catalogo_kits(vehiculo, codigo, precio, marca):
         st.error(f"Error al guardar en catálogo: {e}")
 
 
-def guardar_en_google(cat, cliente, vehiculo, detalle, p_venta, p_compra, proveedor, codigo, f_pago, e_cliente, e_prov):
+def guardar_en_google(categoria, cliente, vehiculo, detalle, monto, costo, proveedor, codigo, f_pago, e_cliente, e_prov, m_forros, c_forros, costo_f):
 # Ajuste horario Argentina
     fecha_hoy = (datetime.now() - timedelta(hours=3)).strftime("%d/%m/%Y %H:%M")
-    columnas = ["fecha", "categoria", "cliente", "vehiculo", "detalle", "venta $", "compra $", "proveedor", "codigo", "forma de pago", "Estado_Cobro", "Estado_Pago_Prov"]
+   columnas = ["Fecha", "Categoría", "Cliente", "Vehículo", "Detalle", "Monto", "Costo", "Proveedor", "Código", "Forma_Pago", "Estado_Cliente", "Estado_Pago_Prov", "Marca_Forros", "Cod_Forros", "Costo_Forros"]
     
     try:
         # Usamos el LINK EXACTO que pusiste arriba
@@ -84,9 +84,7 @@ def guardar_en_google(cat, cliente, vehiculo, detalle, p_venta, p_compra, provee
         if col not in df_existente.columns:
             df_existente[col] = ""
 
-    nuevo_reg = pd.DataFrame([[fecha_hoy, cat, cliente, vehiculo, detalle, p_venta, p_compra, proveedor, codigo, f_pago, e_cliente, e_prov]],
-                                columns=columnas)
-    
+    nuevo_reg = pd.DataFrame([[fecha_hoy, categoria, cliente, vehiculo, detalle, monto, costo, proveedor, codigo, f_pago, e_cliente, e_prov, m_forros, c_forros, costo_f]], columns=columnas)
     df_actualizado = pd.concat([df_existente, nuevo_reg], ignore_index=True)
     
     # Guardamos forzando el link
@@ -340,6 +338,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
