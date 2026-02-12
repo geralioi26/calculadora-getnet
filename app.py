@@ -211,3 +211,54 @@ try:
         st.info("La planilla está vacía todavía.")
 except Exception as e:
     st.info("Conectando con Google Sheets...")
+
+
+
+
+
+# ==========================================
+# 🔍 SECCIÓN: BUSCADOR DE CATÁLOGO
+# ==========================================
+st.divider() # Línea separadora
+st.header("🔍 Consultar Catálogo")
+
+# 1. Elegir qué buscar
+tipo_busqueda = st.radio("¿Qué estás buscando?", ["Embragues (Kits)", "Crapodinas", "Distribución"], horizontal=True)
+
+# 2. La Caja de Búsqueda
+busqueda = st.text_input("✍️ Escribí Modelo de Auto o Código (Ej: 'Gol', '620 3000', 'Ranger'):")
+
+# 3. Lógica de Búsqueda
+if busqueda:
+    st.caption(f"Resultados para: '{busqueda}'")
+    
+    # Buscamos en KITS
+    if tipo_busqueda == "Embragues (Kits)":
+        # Filtro mágico: Busca lo que escribiste en CUALQUIER columna
+        mask = df_kits.astype(str).apply(lambda x: x.str.contains(busqueda, case=False, na=False)).any(axis=1)
+        resultados = df_kits[mask]
+        
+        if not resultados.empty:
+            st.dataframe(resultados, hide_index=True)
+        else:
+            st.info("No encontré kits con ese dato. ¿Probaste otra palabra?")
+
+    # Buscamos en CRAPODINAS
+    elif tipo_busqueda == "Crapodinas":
+        mask = df_crapo.astype(str).apply(lambda x: x.str.contains(busqueda, case=False, na=False)).any(axis=1)
+        resultados = df_crapo[mask]
+        
+        if not resultados.empty:
+            st.dataframe(resultados, hide_index=True)
+        else:
+            st.info("No encontré crapodinas así.")
+
+    # Buscamos en DISTRIBUCIÓN
+    elif tipo_busqueda == "Distribución":
+        mask = df_distri.astype(str).apply(lambda x: x.str.contains(busqueda, case=False, na=False)).any(axis=1)
+        resultados = df_distri[mask]
+        
+        if not resultados.empty:
+            st.dataframe(resultados, hide_index=True)
+        else:
+            st.info("Nada en Distribución todavía.")
