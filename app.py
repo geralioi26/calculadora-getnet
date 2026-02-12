@@ -66,33 +66,30 @@ def actualizar_catalogo_kits(vehiculo, codigo, precio, marca):
     except Exception as e:
         st.error(f"Error al guardar en catálogo: {e}")
 
-
-def guardar_en_google(categoria, cliente, vehiculo, detalle, monto, costo, proveedor, codigo, f_pago, e_cliente, e_prov, m_forros, c_forros, costo_f):
+    def guardar_en_google(categoria, cliente, vehiculo, detalle, monto, costo, proveedor, codigo, f_pago, e_cliente, e_prov, m_forros, c_forros, costo_f, ganancia):
     # Ajuste horario Argentina
     fecha_hoy = (datetime.now() - timedelta(hours=3)).strftime("%d/%m/%Y %H:%M")
-    columnas = ["Fecha", "Categoría", "Cliente", "Vehículo", "Detalle", "Monto", "Costo", "Proveedor", "Código", "Forma_Pago", "Estado_Cliente", "Estado_Pago_Prov", "Marca_Forros", "Cod_Forros", "Costo_Forros"]
+    
+    # AGREGAMOS "Ganancia" AL FINAL DE LA LISTA
+    columnas = ["Fecha", "Categoría", "Cliente", "Vehículo", "Detalle", "Monto", "Costo", "Proveedor", "Código", "Forma_Pago", "Estado_Cliente", "Estado_Pago_Prov", "Marca_Forros", "Cod_Forros", "Costo_Forros", "Ganancia"]
     
     try:
         # Usamos el LINK EXACTO que pusiste arriba
         df_existente = conn.read(spreadsheet=SHEET_URL, worksheet="Ventas", ttl=0)
     except Exception as e:
-        st.error(f"No encuentro la hoja. Revisá que el link sea correcto y que hayas compartido con el robot. Error: {e}")
+        st.error(f"Error al leer hoja Ventas: {e}")
         st.stop()
     
-    # Aseguramos columnas
+    # Aseguramos columnas (Arreglo para que no duplique)
     for col in columnas:
         if col not in df_existente.columns:
             df_existente[col] = ""
 
-    nuevo_reg = pd.DataFrame([[fecha_hoy, categoria, cliente, vehiculo, detalle, monto, costo, proveedor, codigo, f_pago, e_cliente, e_prov, m_forros, c_forros, costo_f]], columns=columnas)
-    df_actualizado = pd.concat([df_existente, nuevo_reg], ignore_index=True)
+    # AGREGAMOS ganancia AL FINAL
+    nuevo_reg = pd.DataFrame([[fecha_hoy, categoria, cliente, vehiculo, detalle, monto, costo, proveedor, codigo, f_pago, e_cliente, e_prov, m_forros, c_forros, costo_f, ganancia]], columns=columnas)
     
-    # Guardamos forzando el link
+    df_actualizado = pd.concat([df_existente, nuevo_reg], ignore_index=True)
     conn.update(spreadsheet=SHEET_URL, worksheet="Ventas", data=df_actualizado)
-
-# --- GATILLO INTELIGENTE: Si hay marca, guarda en catálogo ---
-    if vehiculo and codigo and p_venta and m_kit:
-        actualizar_catalogo_kits(vehiculo, codigo, p_venta, m_kit)
 
 # 2. PANEL DE CARGA
 st.sidebar.header("⚙️ Configuración")
@@ -144,27 +141,30 @@ detalle_final = st.sidebar.text_area("Detalle final (editable):", value=sugerenc
 label_item = "*Producto:*" if cat_f == "Venta" else "*Trabajo:*"
 
 st.sidebar.divider()
-st.sidebar.divider()
 st.sidebar.write("📸 **Uso Interno**")
 
 # --- LÓGICA DE COSTOS Y CÓDIGOS ---
 if cat_f == "Reparación":
+    # Si es reparación, toma los datos de arriba
     codigo_manual = crap_codigo
     precio_compra = crap_costo + forros_costo
-    st.sidebar.info(f"💰 Costo Total Materiales: ${precio_compra:,.0f}")
+    st.sidebar.info(f"💰 Costo Materiales: ${precio_compra:,.0f}")
 else:
+    # Si es venta, te pide los datos
     codigo_manual = st.sidebar.text_input("Código de repuesto:", "")
     precio_compra = st.sidebar.number_input("Precio de COMPRA ($):", min_value=0, value=0)
 
-# --- LA CÁMARA (Para que aparezca siempre) ---
+# --- LA CÁMARA (Siempre visible) ---
 foto_repuesto = st.sidebar.file_uploader("📷 Sacar foto a la caja/repuesto", type=["jpg", "png", "jpeg"])
 if foto_repuesto:
     st.sidebar.image(foto_repuesto, caption="Vista previa", use_container_width=True)
 
-# --- GANANCIA EN PANTALLA ---
+# --- GANANCIA EN PANTALLA (ESTO ES LO NUEVO QUE TE FALTA) ---
 if monto_limpio > 0:
     ganancia = monto_limpio - precio_compra
     st.sidebar.metric("Ganancia Estimada", f"$ {ganancia:,.0f}")
+else:
+    ganancia = 0
 proveedor_input = st.sidebar.text_input("Proveedor:", "icepar")
 # --- SECCIÓN: ESTADOS DE PAGO (NUEVO) ---
 st.sidebar.divider()
@@ -350,6 +350,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
