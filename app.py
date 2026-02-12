@@ -153,7 +153,10 @@ if incl_rectif:
 else:
     txt_rectif = ""
 
+# LINKS CORREGIDOS
 maps_link = "http://googleusercontent.com/maps.google.com/search/Crespo+4117+Rosario"
+ig_link = "https://www.instagram.com/embraguesrosario?igsh=MWsxNzI1MTN4ZWJ3eg=="
+
 metodo_txt = f"{nombre_pos} {'(Link)' if es_link else '(Posnet)'}"
 
 mensaje = (
@@ -174,10 +177,24 @@ mensaje = (
     f"📍 *Dirección:* Crespo 4117, Rosario\n"
     f"📍 *Ubicación:* {maps_link}\n"
     f"📸 *Instagram:* *@embraguesrosario*\n"
-    f"     https://www.instagram.com/embraguesrosario/\n"
+    f"     {ig_link}\n"
     f"⏰ *Horario:* 8:30 a 17:00 hs\n\n"
     f"¡Te esperamos pronto! 🙋🏻"
 )
 
 link_wa = f"https://wa.me/?text={urllib.parse.quote(mensaje)}"
 st.link_button("🟢 ENVIAR PRESUPUESTO POR WHATSAPP", link_wa)
+
+# 5. HISTORIAL (RECUPERADO)
+st.divider()
+st.subheader("📋 Últimos Movimientos")
+try:
+    # Usamos conn que ya definimos arriba
+    df_ver = conn.read(spreadsheet=SHEET_URL, worksheet="Ventas", ttl=0)
+    if not df_ver.empty:
+        # Mostramos las últimas 5 ventas (invertido para ver la más reciente arriba)
+        st.dataframe(df_ver.tail(5)[::-1], use_container_width=True)
+    else:
+        st.info("La planilla está vacía todavía.")
+except Exception as e:
+    st.info("Conectando con Google Sheets...")
