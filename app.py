@@ -126,6 +126,9 @@ t3 = monto_limpio * c3 * extra_link
 t6 = monto_limpio * c6 * extra_link
 t9 = monto_limpio * c9 * extra_link
 t12 = monto_limpio * c12 * extra_link
+# MOSTRAR PORCENTAJES (Para control interno)
+p_1, p_3, p_6, p_9, p_12 = [(x * extra_link - 1) * 100 for x in [c1, c3, c6, c9, c12]]
+st.info(f"📊 **Recargos Reales:** 1p: {p_1:.1f}% | 3c: {p_3:.1f}% | 6c: {p_6:.1f}% | 9c: {p_9:.1f}% | 12c: {p_12:.1f}%")
 
 st.divider()
 # PRECIO CONTADO DESTACADO (Tu pedido: que llame la atención)
@@ -198,4 +201,5 @@ try:
         st.info("La planilla está vacía todavía.")
 except Exception as e:
     st.info("Conectando con Google Sheets...")
+
 
