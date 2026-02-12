@@ -28,6 +28,16 @@ except Exception as e:
     st.error(f"Error de conexión: {e}")
     st.stop()
 
+# --- CARGA DE CATÁLOGOS (NUEVO) ---
+try:
+    # Leemos las 4 hojas de una para tenerlas listas
+    df = conn.read(spreadsheet=SHEET_URL, worksheet="Ventas", ttl=0)
+    df_kits = conn.read(spreadsheet=SHEET_URL, worksheet="Catalogo_Kits", ttl=0)
+    df_crapo = conn.read(spreadsheet=SHEET_URL, worksheet="Catalogo_Crapodinas", ttl=0)
+    df_distri = conn.read(spreadsheet=SHEET_URL, worksheet="Catalogo_Distribucion", ttl=0)
+except:
+    st.warning("⚠️ Todavía no pude leer los catálogos. (Si recién creaste las hojas, dame unos segundos)")
+
 def guardar_en_google(cat, cliente, vehiculo, detalle, p_venta, p_compra, proveedor, codigo, f_pago):
 # Ajuste horario Argentina
     fecha_hoy = (datetime.now() - timedelta(hours=3)).strftime("%d/%m/%Y %H:%M")
@@ -201,5 +211,6 @@ try:
         st.info("La planilla está vacía todavía.")
 except Exception as e:
     st.info("Conectando con Google Sheets...")
+
 
 
