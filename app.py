@@ -154,7 +154,7 @@ else:
     txt_rectif = ""
 
 # LINKS CORREGIDOS
-maps_link = "http://googleusercontent.com/maps.google.com/search/Crespo+4117+Rosario"
+maps_link = "https://www.google.com/maps?q=Crespo+4117+Rosario"
 ig_link = "https://www.instagram.com/embraguesrosario?igsh=MWsxNzI1MTN4ZWJ3eg=="
 
 metodo_txt = f"{nombre_pos} {'(Link)' if es_link else '(Posnet)'}"
@@ -198,3 +198,4 @@ try:
         st.info("La planilla está vacía todavía.")
 except Exception as e:
     st.info("Conectando con Google Sheets...")
+
