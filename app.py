@@ -142,31 +142,32 @@ codigo_manual = st.sidebar.text_input("Código de repuesto:", "")
 precio_compra = st.sidebar.number_input("Precio de COMPRA ($):", min_value=0, value=0)
 proveedor_input = st.sidebar.text_input("Proveedor:", "icepar")
 # --- SECCIÓN: ESTADOS DE PAGO (NUEVO) ---
-        st.sidebar.divider()
-        st.sidebar.subheader("💰 Estado de la Operación")
-
-        estado_cliente = st.sidebar.selectbox(
-            "Estado del Cliente:", 
-            ["Pagado", "Debe", "Seña"],
-            index=0
-        )
+st.sidebar.divider()
+st.sidebar.subheader("💰 Estado de la Operación")
         
-        # Si marca Pagado, se activa el menú de "Cómo pagó"
-        f_pago_input = "N/A" # Valor por defecto si debe
-        if estado_cliente == "Pagado":
-            lista_pagos = [
-                "Efectivo", "Transferencia", "Débito", 
-                "BNA - 1 Pago", "BNA - 3 Cuotas", "BNA - 6 Cuotas",
-                "Getnet - 1 Pago", "Getnet - 3 Cuotas", "Getnet - 6 Cuotas", "Getnet - 9 Cuotas", "Getnet - 12 Cuotas",
-                "Combinado", "Otro"
-            ]
-            f_pago_input = st.sidebar.selectbox("¿Cómo pagó el cliente?:", lista_pagos)
-
-        estado_p_prov = st.sidebar.selectbox(
-            "Estado al Proveedor:", 
-            ["Pagado", "Cuenta Corriente", "N/A"],
-            index=0
-        )
+estado_cliente = st.sidebar.selectbox(
+    "Estado del Cliente:", 
+    ["Pagado", "Debe", "Seña"],
+    index=0
+)
+                
+# Si marca Pagado, se activa el menú de "Cómo pagó"
+f_pago_input = "N/A" # Valor por defecto si debe
+if estado_cliente == "Pagado":
+    lista_pagos = [
+        "Efectivo", "Transferencia", "Débito", 
+        "BNA - 1 Pago", "BNA - 3 Cuotas", "BNA - 6 Cuotas",
+        "Getnet - 1 Pago", "Getnet - 3 Cuotas", "Getnet - 6 Cuotas", "Getnet - 9 Cuotas", "Getnet - 12 Cuotas",
+        "Combinado", "Otro"
+    ]
+    f_pago_input = st.sidebar.selectbox("¿Cómo pagó el cliente?:", lista_pagos)
+        
+estado_p_prov = st.sidebar.selectbox(
+    "Estado al Proveedor:", 
+        ["Pagado", "Cuenta Corriente", "N/A"],
+        index=0
+)
+        
 if st.sidebar.button("💾 GUARDAR VENTA"):
     guardar_en_google(cat_f, cliente_input, vehiculo_input, detalle_final, monto_limpio, precio_compra, proveedor_input, codigo_manual, f_pago_input)
     st.sidebar.success(f"¡Venta de $ {monto_limpio:,.0f} guardada!")
@@ -324,6 +325,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
