@@ -75,7 +75,7 @@ tipo_item = st.sidebar.selectbox("Tipo de Trabajo:",
 if "Nuevo" in tipo_item:
     cat_f, icono, incl_rectif = "Venta", "⚙️", True
     # --- Selector de Marca (NUEVO) ---
-        lista_marcas = ["LUK", "SACHS", "VALEO", "PHC_VALEO", "ORIGINAL", "OTRA"]
+    lista_marcas = ["LUK", "SACHS", "VALEO", "PHC_VALEO", "ORIGINAL", "OTRA"]
         m_kit = st.sidebar.selectbox("Marca del Kit:", lista_marcas)
     sugerencia = f"KIT nuevo marca *{m_kit}*"
 elif "Reparación" in tipo_item:
@@ -264,4 +264,5 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
