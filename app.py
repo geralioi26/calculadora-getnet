@@ -94,7 +94,21 @@ def actualizar_catalogo_kits(vehiculo, codigo, precio, marca):
 # 2. PANEL DE CARGA
 st.sidebar.header("⚙️ Configuración")
 
-m_kit = None  # Limpiamos la variable por seguridad
+# --- INICIALIZACIÓN DE VARIABLES (Anti-Errores) ---
+# Esto evita que la App explote si falta algún dato
+m_kit = ""
+m_forros = ""
+forros_codigo = ""
+forros_costo = 0
+crap_codigo = ""
+crap_costo = 0
+
+# Selector de Tipo de Trabajo
+tipo_item = st.sidebar.selectbox("Tipo de Trabajo:", 
+                                ["Embrague Nuevo (Venta)", 
+                                 "Reparación de Embrague", 
+                                 "Kit de Distribución",
+                                 "Otro"])
 
 tipo_item = st.sidebar.selectbox("Tipo de Trabajo:", 
                                 ["Embrague Nuevo (Venta)", 
@@ -351,6 +365,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
