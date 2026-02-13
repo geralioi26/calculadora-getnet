@@ -70,7 +70,7 @@ def actualizar_catalogo_kits(vehiculo, codigo, precio, marca):
 def actualizar_catalogo_crapodinas(vehiculo, descripcion, codigo, precio, marca):
     try:
         # 1. Leemos el catálogo
-        df_crapo = conn.read(spreadsheet=SHEET_URL, worksheet="Catalogo_Crapodinas", ttl=0)
+        df_crapo = conn.read(spreadsheet=SHEET_URL, worksheet="Catalogo_Crapodinas", ttl=10)
         marca_limpia = str(marca).upper()
         col_cod = f"Codigo_{marca_limpia}"
         col_pre = f"Precio_{marca_limpia}"
@@ -140,7 +140,7 @@ def guardar_en_google(categoria, cliente, vehiculo, detalle, monto, costo, prove
     
     try:
         # Leemos la hoja
-        df_existente = conn.read(spreadsheet=SHEET_URL, worksheet="Ventas", ttl=0)
+        df_existente = conn.read(spreadsheet=SHEET_URL, worksheet="Ventas", ttl=10)
     except Exception as e:
         st.error(f"Error al leer hoja Ventas: {e}")
         st.stop()
@@ -447,6 +447,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
