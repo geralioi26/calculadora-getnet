@@ -39,32 +39,62 @@ except:
     st.warning("⚠️ Todavía no pude leer los catálogos. (Si recién creaste las hojas, dame unos segundos)")
 
 # --- FUNCIÓN AUXILIAR: GUARDAR EN CATÁLOGO ---
-def actualizar_catalogo_kits(vehiculo, codigo, precio, marca):
+def actualizar_catalogo_kits(vehiculo, descripcion, codigo, precio, marca):
     try:
-        # 1. Leemos el catálogo actual
-        df_kits = conn.read(spreadsheet=SHEET_URL, worksheet="Catalogo_Kits", ttl=0)
+        # 1. Leemos el catálogo de Kits
+        df_kits = conn.read(spreadsheet=SHEET_URL, worksheet="Catalogo_Kits", ttl=5)
+        marca_limpia = str(marca).upper()
+        col_cod = f"Codigo_{marca_limpia}"
+        col_pre = f"Precio_{marca_limpia}"
+
+        if col_cod not in df_kits.columns:
+            st.warning(f"⚠️ La marca {marca_limpia} no tiene columnas en Kits.")
+            return
+
+        # Limpieza de datos para comparar
+        vehiculo_limpio = str(vehiculo).strip().lower()
+        desc_limpia = str(descripcion).strip().lower()
+        cod_buscado = str(codigo).split('.')[0].strip()
+
+        # Buscadores
+        filtro_exacto = (df_kits['Vehiculo'].astype(str).str.strip().str.lower() == vehiculo_limpio) & \
+                        (df_kits['Descripcion'].astype(str).str.strip().str.lower() == desc_limpia)
         
-        # 2. Creamos una fila nueva vacía
-        nueva_fila = {col: "" for col in df_kits.columns}
-        nueva_fila["Vehiculo"] = vehiculo
-        
-        # 3. Llenamos la columna EXACTA de la marca
-        col_codigo = f"Codigo_{marca}"
-        col_precio = f"Precio_{marca}"
-        
-        if col_codigo in nueva_fila:
-            nueva_fila[col_codigo] = codigo
-            nueva_fila[col_precio] = precio
-            
-            # 4. Guardamos
-            df_nuevo = pd.DataFrame([nueva_fila])
-            df_final = pd.concat([df_kits, df_nuevo], ignore_index=True)
-            conn.update(spreadsheet=SHEET_URL, worksheet="Catalogo_Kits", data=df_final)
-            st.toast(f"✅ Catálogo actualizado: {marca} guardado!", icon="📒")
+        codigos_col = df_kits[col_cod].astype(str).str.split('.').str[0].str.strip()
+        filtro_codigo = codigos_col == cod_buscado
+
+        if filtro_exacto.any():
+            # CASO A: Ya existe el auto. Actualizamos esa fila.
+            idx = df_kits.index[filtro_exacto][0]
+            df_kits.at[idx, col_cod] = codigo
+            df_kits.at[idx, col_pre] = precio
+            msg = f"✅ Kit {marca_limpia} actualizado para {vehiculo}"
+
+        elif filtro_codigo.any():
+            # CASO B: El código de Kit ya existe en otro auto (Equivalencia).
+            idx = df_kits.index[filtro_codigo][0]
+            v_actual = str(df_kits.at[idx, 'Vehiculo'])
+            if vehiculo_limpio not in v_actual.lower():
+                df_kits.at[idx, 'Vehiculo'] = f"{v_actual} / {vehiculo}"
+            df_kits.at[idx, col_pre] = precio
+            msg = f"🔗 Kit equivalente detectado: {vehiculo}"
+
         else:
-            st.warning(f"⚠️ No encontré la columna '{col_codigo}' en el Excel.")
+            # CASO C: Kit nuevo para auto nuevo.
+            nueva_fila = {col: "" for col in df_kits.columns}
+            nueva_fila["Vehiculo"] = vehiculo
+            nueva_fila["Descripcion"] = descripcion
+            nueva_fila[col_cod] = codigo
+            nueva_fila[col_pre] = precio
+            df_kits = pd.concat([df_kits, pd.DataFrame([nueva_fila])], ignore_index=True)
+            msg = f"✨ Nuevo Kit en catálogo: {vehiculo}"
+
+        # 2. Guardamos los cambios
+        conn.update(spreadsheet=SHEET_URL, worksheet="Catalogo_Kits", data=df_kits)
+        st.toast(msg, icon="📦")
+
     except Exception as e:
-        st.error(f"Error al guardar en catálogo: {e}")
+        st.error(f"Error en catálogo de kits: {e}")
 
 # --- FUNCIÓN PARA GUARDAR CRAPODINAS NUEVAS (Versión Completa) ---
 def actualizar_catalogo_crapodinas(vehiculo, descripcion, codigo, precio, marca):
@@ -460,6 +490,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
