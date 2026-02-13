@@ -240,9 +240,18 @@ else:
     cod_crap_final = ""           # Y la columna Crapodina queda vacía
 
 if st.sidebar.button("💾 GUARDAR VENTA"):
-    # Cambiamos 'detalle_final' por 'detalle_excel'
+    # 1. Guarda la venta normal (lo que ya hacíamos)
     guardar_en_google(cat_f, cliente_input, vehiculo_input, detalle_excel, monto_limpio, precio_compra, proveedor_input, cod_kit_final, cod_crap_final, f_pago_input, estado_cliente, estado_p_prov, m_forros, forros_codigo, forros_costo, ganancia)
-    st.sidebar.success(f"¡Venta de $ {monto_limpio:,.0f} guardada!")
+    
+    # 2. NUEVO: Si hay código de Kit, lo guarda en el catálogo de Kits
+    if cod_kit_final:
+        actualizar_catalogo_kits(vehiculo_input, cod_kit_final, monto_limpio, m_kit if 'm_kit' in locals() else "OTRA")
+    
+    # 3. NUEVO: Si hay código de Crapodina, lo guarda en el catálogo de Crapodinas
+    if cod_crap_final:
+        actualizar_catalogo_crapodinas(cod_crap_final, crap_costo, proveedor_input)
+
+    st.sidebar.success(f"¡Venta de $ {monto_limpio:,.0f} guardada y catálogos actualizados!")
 # 3. CALCULADORA MULTI-POS (GETNET vs MÁS PAGOS)
 st.markdown("### 💳 Calculadora de Cuotas")
 
@@ -397,6 +406,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
