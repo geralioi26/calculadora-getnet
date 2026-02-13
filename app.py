@@ -254,9 +254,12 @@ if st.sidebar.button("💾 GUARDAR VENTA"):
     if cod_kit_final:
         actualizar_catalogo_kits(vehiculo_input, cod_kit_final, monto_limpio, m_kit if 'm_kit' in locals() else "OTRA")
     
-    # 3. NUEVO: Si hay código de Crapodina, lo guarda en el catálogo de Crapodinas
+    # 3. ACTUALIZADO: Guarda en Catálogo de Crapodinas con Marca y Vehículo
     if cod_crap_final:
-        actualizar_catalogo_crapodinas(cod_crap_final, crap_costo, proveedor_input)
+        # Agarramos la marca del multiselect de WhatsApp
+        marca_elegida = m_crap[0] if m_crap else "OTRA"
+        # Le mandamos los 5 datos: Vehiculo, Descrip, Codigo, Precio y Marca
+        actualizar_catalogo_crapodinas(vehiculo_input, "Crapodina Hidráulica", cod_crap_final, crap_costo, marca_elegida)
 
     st.sidebar.success(f"¡Venta de $ {monto_limpio:,.0f} guardada y catálogos actualizados!")
 # 3. CALCULADORA MULTI-POS (GETNET vs MÁS PAGOS)
@@ -413,6 +416,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
