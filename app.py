@@ -110,11 +110,6 @@ tipo_item = st.sidebar.selectbox("Tipo de Trabajo:",
                                  "Kit de Distribución",
                                  "Otro"])
 
-tipo_item = st.sidebar.selectbox("Tipo de Trabajo:", 
-                                ["Embrague Nuevo (Venta)", 
-                                 "Reparación de Embrague", 
-                                 "Kit de Distribución",
-                                 "Otro"])
 
 if "Nuevo" in tipo_item:
     cat_f, icono, incl_rectif = "Venta", "⚙️", True
@@ -365,6 +360,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
