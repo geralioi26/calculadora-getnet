@@ -69,16 +69,23 @@ def actualizar_catalogo_kits(vehiculo, codigo, precio, marca):
 def guardar_en_google(categoria, cliente, vehiculo, detalle, monto, costo, proveedor, codigo, f_pago, e_cliente, e_prov, m_forros, c_forros, costo_f, ganancia):
     # Ajuste horario Argentina
     fecha_hoy = (datetime.now() - timedelta(hours=3)).strftime("%d/%m/%Y %H:%M")
-        
-    # AGREGAMOS "Ganancia" AL FINAL DE LA LISTA
+    
+    # ESTOS SON LOS NOMBRES EXACTOS QUE PUSISTE EN EL EXCEL
     columnas = ["Fecha", "Categoría", "Cliente", "Vehículo", "Detalle", "Monto", "Costo", "Proveedor", "Código", "Forma_Pago", "Estado_Cliente", "Estado_Pago_Prov", "Marca_Forros", "Cod_Forros", "Costo_Forros", "Ganancia"]
-        
+    
     try:
-        # Usamos el LINK EXACTO que pusiste arriba
+        # Leemos la hoja
         df_existente = conn.read(spreadsheet=SHEET_URL, worksheet="Ventas", ttl=0)
     except Exception as e:
         st.error(f"Error al leer hoja Ventas: {e}")
         st.stop()
+    
+    # Creamos el registro nuevo
+    nuevo_reg = pd.DataFrame([[fecha_hoy, categoria, cliente, vehiculo, detalle, monto, costo, proveedor, codigo, f_pago, e_cliente, e_prov, m_forros, c_forros, costo_f, ganancia]], columns=columnas)
+    
+    # Guardamos (Concatenamos directo)
+    df_actualizado = pd.concat([df_existente, nuevo_reg], ignore_index=True)
+    conn.update(spreadsheet=SHEET_URL, worksheet="Ventas", data=df_actualizado)
         
     # Aseguramos columnas (Arreglo para que no duplique)
     for col in columnas:
@@ -360,6 +367,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
