@@ -261,7 +261,8 @@ if st.sidebar.button("💾 GUARDAR VENTA"):
         # Agarramos la marca del multiselect de WhatsApp
         marca_elegida = m_crap[0] if m_crap else "OTRA"
         # Le mandamos los 5 datos: Vehiculo, Descrip, Codigo, Precio y Marca
-        actualizar_catalogo_crapodinas(vehiculo_input, "Crapodina Hidráulica", cod_crap_final, crap_costo, marca_elegida)
+        # Ahora usamos 'tipo_crap' para que guarde lo que vos elegiste (Mecánica o Hidráulica)
+        actualizar_catalogo_crapodinas(vehiculo_input, f"Crapodina {tipo_crap}", cod_crap_final, crap_costo, marca_elegida)
 
     st.sidebar.success(f"¡Venta de $ {monto_limpio:,.0f} guardada y catálogos actualizados!")
 # 3. CALCULADORA MULTI-POS (GETNET vs MÁS PAGOS)
@@ -418,6 +419,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
