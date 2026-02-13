@@ -66,28 +66,16 @@ def actualizar_catalogo_kits(vehiculo, codigo, precio, marca):
     except Exception as e:
         st.error(f"Error al guardar en catálogo: {e}")
 
-def guardar_en_google(categoria, cliente, vehiculo, detalle, monto, costo, proveedor, codigo, f_pago, e_cliente, e_prov, m_forros, c_forros, costo_f, ganancia):
+def guardar_en_google(categoria, cliente, vehiculo, detalle, monto, costo, proveedor, cod_kit, cod_crap, f_pago, e_cliente, e_prov, m_forros, c_forros, costo_f, ganancia):
     # Ajuste horario Argentina
     fecha_hoy = (datetime.now() - timedelta(hours=3)).strftime("%d/%m/%Y %H:%M")
     
-    # ACÁ ESTÁ LA MAGIA: Nombres idénticos a tu Excel
+    # LISTA EXACTA DE TUS COLUMNAS DEL EXCEL
     columnas = [
-        "Fecha", 
-        "Categoría", 
-        "Cliente", 
-        "Vehículo", 
-        "Detalle", 
-        "Venta $",      # Así lo tenés vos
-        "Compra $",     # Así lo tenés vos
-        "Proveedor", 
-        "Código", 
-        "Forma_de_pago",   # Así lo tenés vos
-        "Estado_Cobro",    # Así lo tenés vos
-        "Estado_Pago_Prov", 
-        "Marca_Forros", 
-        "Cod_Forros", 
-        "Costo_Forros", 
-        "Ganancia"
+        "Fecha", "Categoría", "Cliente", "Vehículo", "Detalle", 
+        "Venta $", "Compra $", "Proveedor", "Código", "Cod_Crapodina", 
+        "Forma_de_pago", "Estado_Cobro", "Estado_Pago_Prov", 
+        "Marca_Forros", "Cod_Forros", "Costo_Forros", "Ganancia"
     ]
     
     try:
@@ -97,10 +85,10 @@ def guardar_en_google(categoria, cliente, vehiculo, detalle, monto, costo, prove
         st.error(f"Error al leer hoja Ventas: {e}")
         st.stop()
     
-    # Creamos el registro nuevo
-    nuevo_reg = pd.DataFrame([[fecha_hoy, categoria, cliente, vehiculo, detalle, monto, costo, proveedor, codigo, f_pago, e_cliente, e_prov, m_forros, c_forros, costo_f, ganancia]], columns=columnas)
+    # Creamos el registro nuevo con los DOS CÓDIGOS en su lugar
+    nuevo_reg = pd.DataFrame([[fecha_hoy, categoria, cliente, vehiculo, detalle, monto, costo, proveedor, cod_kit, cod_crap, f_pago, e_cliente, e_prov, m_forros, c_forros, costo_f, ganancia]], columns=columnas)
     
-    # Guardamos concatenando directo (sin inventar columnas)
+    # Guardamos
     df_actualizado = pd.concat([df_existente, nuevo_reg], ignore_index=True)
     conn.update(spreadsheet=SHEET_URL, worksheet="Ventas", data=df_actualizado)
         
@@ -395,6 +383,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
