@@ -70,7 +70,7 @@ def guardar_en_google(categoria, cliente, vehiculo, detalle, monto, costo, prove
     # Ajuste horario Argentina
     fecha_hoy = (datetime.now() - timedelta(hours=3)).strftime("%d/%m/%Y %H:%M")
     
-    # LISTA EXACTA DE TUS COLUMNAS DEL EXCEL
+    # TUS COLUMNAS EXACTAS
     columnas = [
         "Fecha", "Categoría", "Cliente", "Vehículo", "Detalle", 
         "Venta $", "Compra $", "Proveedor", "Código", "Cod_Crapodina", 
@@ -79,13 +79,12 @@ def guardar_en_google(categoria, cliente, vehiculo, detalle, monto, costo, prove
     ]
     
     try:
-        # Leemos la hoja
         df_existente = conn.read(spreadsheet=SHEET_URL, worksheet="Ventas", ttl=0)
     except Exception as e:
         st.error(f"Error al leer hoja Ventas: {e}")
         st.stop()
     
-    # Creamos el registro nuevo con los DOS CÓDIGOS en su lugar
+    # ACÁ ESTABA EL ERROR: Ahora usamos cod_kit y cod_crap en vez de 'codigo'
     nuevo_reg = pd.DataFrame([[fecha_hoy, categoria, cliente, vehiculo, detalle, monto, costo, proveedor, cod_kit, cod_crap, f_pago, e_cliente, e_prov, m_forros, c_forros, costo_f, ganancia]], columns=columnas)
     
     # Guardamos
@@ -383,6 +382,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
