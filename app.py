@@ -70,8 +70,25 @@ def guardar_en_google(categoria, cliente, vehiculo, detalle, monto, costo, prove
     # Ajuste horario Argentina
     fecha_hoy = (datetime.now() - timedelta(hours=3)).strftime("%d/%m/%Y %H:%M")
     
-    # ESTOS SON LOS NOMBRES EXACTOS QUE PUSISTE EN EL EXCEL
-    columnas = ["Fecha", "Categoría", "Cliente", "Vehículo", "Detalle", "Monto", "Costo", "Proveedor", "Código", "Forma_Pago", "Estado_Cliente", "Estado_Pago_Prov", "Marca_Forros", "Cod_Forros", "Costo_Forros", "Ganancia"]
+    # ACÁ ESTÁ LA MAGIA: Nombres idénticos a tu Excel
+    columnas = [
+        "Fecha", 
+        "Categoría", 
+        "Cliente", 
+        "Vehículo", 
+        "Detalle", 
+        "Venta $",      # Así lo tenés vos
+        "Compra $",     # Así lo tenés vos
+        "Proveedor", 
+        "Código", 
+        "Forma_de_pago",   # Así lo tenés vos
+        "Estado_Cobro",    # Así lo tenés vos
+        "Estado_Pago_Prov", 
+        "Marca_Forros", 
+        "Cod_Forros", 
+        "Costo_Forros", 
+        "Ganancia"
+    ]
     
     try:
         # Leemos la hoja
@@ -83,7 +100,7 @@ def guardar_en_google(categoria, cliente, vehiculo, detalle, monto, costo, prove
     # Creamos el registro nuevo
     nuevo_reg = pd.DataFrame([[fecha_hoy, categoria, cliente, vehiculo, detalle, monto, costo, proveedor, codigo, f_pago, e_cliente, e_prov, m_forros, c_forros, costo_f, ganancia]], columns=columnas)
     
-    # Guardamos (Concatenamos directo)
+    # Guardamos concatenando directo (sin inventar columnas)
     df_actualizado = pd.concat([df_existente, nuevo_reg], ignore_index=True)
     conn.update(spreadsheet=SHEET_URL, worksheet="Ventas", data=df_actualizado)
         
@@ -367,6 +384,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
