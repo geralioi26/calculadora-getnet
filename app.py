@@ -170,7 +170,8 @@ cliente_input = st.sidebar.text_input("Nombre del Cliente:", "Consumidor Final")
 #f_pago_input = st.sidebar.selectbox("Forma de Pago Realizada:", 
                                    #["Efectivo (Contado)", "Transferencia", "Tarjeta BNA - 1 Pago", "Tarjeta BNA - 3 Cuotas", "Tarjeta BNA - 6 Cuotas", "Combinado"])
 
-detalle_final = st.sidebar.text_area("Detalle final (editable):", value=sugerencia)
+# Detalle manual, limpio para el Excel
+detalle_final = st.sidebar.text_input("📝 Descripción para Excel:", value="")
 label_item = "*Producto:*" if cat_f == "Venta" else "*Trabajo:*"
 
 st.sidebar.divider()
@@ -384,6 +385,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
