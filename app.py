@@ -230,8 +230,8 @@ estado_p_prov = st.sidebar.selectbox(
 )
         
 if st.sidebar.button("💾 GUARDAR VENTA"):
-    # Agregamos 'ganancia' al final del paréntesis para que viaje al Excel
-    guardar_en_google(cat_f, cliente_input, vehiculo_input, detalle_final, monto_limpio, precio_compra, proveedor_input, codigo_manual, f_pago_input, estado_cliente, estado_p_prov, m_forros, forros_codigo, forros_costo, ganancia)
+    # Cambiamos 'detalle_final' por 'detalle_excel'
+    guardar_en_google(cat_f, cliente_input, vehiculo_input, detalle_excel, monto_limpio, precio_compra, proveedor_input, cod_kit_final, cod_crap_final, f_pago_input, estado_cliente, estado_p_prov, m_forros, forros_codigo, forros_costo, ganancia)
     st.sidebar.success(f"¡Venta de $ {monto_limpio:,.0f} guardada!")
 # 3. CALCULADORA MULTI-POS (GETNET vs MÁS PAGOS)
 st.markdown("### 💳 Calculadora de Cuotas")
@@ -387,31 +387,5 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
