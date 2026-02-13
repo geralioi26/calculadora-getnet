@@ -66,6 +66,31 @@ def actualizar_catalogo_kits(vehiculo, codigo, precio, marca):
     except Exception as e:
         st.error(f"Error al guardar en catálogo: {e}")
 
+# --- FUNCIÓN PARA GUARDAR CRAPODINAS NUEVAS ---
+def actualizar_catalogo_crapodinas(codigo, costo, proveedor):
+    try:
+        # 1. Leemos el catálogo de crapodinas
+        df_crapo = conn.read(spreadsheet=SHEET_URL, worksheet="Catalogo_Crapodinas", ttl=0)
+        
+        # 2. Verificamos si el código ya existe para no duplicar
+        if str(codigo) in df_crapo.astype(str).values:
+            return # Si ya está, no hacemos nada
+            
+        # 3. Si es nuevo, creamos la fila
+        nueva_fila = pd.DataFrame([{
+            "Codigo": codigo,
+            "Costo": costo,
+            "Proveedor": proveedor,
+            "Ultima_Actualizacion": datetime.now().strftime("%d/%m/%Y")
+        }])
+        
+        # 4. Guardamos
+        df_final = pd.concat([df_crapo, nueva_fila], ignore_index=True)
+        conn.update(spreadsheet=SHEET_URL, worksheet="Catalogo_Crapodinas", data=df_final)
+        st.toast(f"✅ Nueva Crapodina guardada: {codigo}", icon="⚙️")
+    except Exception as e:
+        st.error(f"Error al actualizar catálogo de crapodinas: {e}")
+
 def guardar_en_google(categoria, cliente, vehiculo, detalle, monto, costo, proveedor, cod_kit, cod_crap, f_pago, e_cliente, e_prov, m_forros, c_forros, costo_f, ganancia):
     # Ajuste horario Argentina
     fecha_hoy = (datetime.now() - timedelta(hours=3)).strftime("%d/%m/%Y %H:%M")
@@ -372,6 +397,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
