@@ -66,24 +66,31 @@ def actualizar_catalogo_kits(vehiculo, codigo, precio, marca):
     except Exception as e:
         st.error(f"Error al guardar en catálogo: {e}")
 
-# --- FUNCIÓN PARA GUARDAR CRAPODINAS NUEVAS ---
-def actualizar_catalogo_crapodinas(codigo, costo, proveedor):
+# --- FUNCIÓN PARA GUARDAR CRAPODINAS NUEVAS (Versión Completa) ---
+def actualizar_catalogo_crapodinas(codigo, marca, costo, proveedor):
     try:
         # 1. Leemos el catálogo de crapodinas
         df_crapo = conn.read(spreadsheet=SHEET_URL, worksheet="Catalogo_Crapodinas", ttl=0)
         
         # 2. Verificamos si el código ya existe para no duplicar
         if str(codigo) in df_crapo.astype(str).values:
-            return # Si ya está, no hacemos nada
+            return 
             
-        # 3. Si es nuevo, creamos la fila
+        # 3. Guardamos con MARCA incluida
         nueva_fila = pd.DataFrame([{
             "Codigo": codigo,
+            "Marca": marca,        # <--- Agregamos esto
             "Costo": costo,
             "Proveedor": proveedor,
             "Ultima_Actualizacion": datetime.now().strftime("%d/%m/%Y")
         }])
         
+        # 4. Guardamos
+        df_final = pd.concat([df_crapo, nueva_fila], ignore_index=True)
+        conn.update(spreadsheet=SHEET_URL, worksheet="Catalogo_Crapodinas", data=df_final)
+        st.toast(f"✅ Crapodina {marca} guardada: {codigo}", icon="⚙️")
+    except Exception as e:
+        st.error(f"Error al actualizar catálogo de crapodinas: {e}")
         # 4. Guardamos
         df_final = pd.concat([df_crapo, nueva_fila], ignore_index=True)
         conn.update(spreadsheet=SHEET_URL, worksheet="Catalogo_Crapodinas", data=df_final)
@@ -406,6 +413,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
