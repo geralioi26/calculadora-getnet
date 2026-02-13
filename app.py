@@ -67,28 +67,28 @@ def actualizar_catalogo_kits(vehiculo, codigo, precio, marca):
         st.error(f"Error al guardar en catálogo: {e}")
 
 # --- FUNCIÓN PARA GUARDAR CRAPODINAS NUEVAS (Versión Completa) ---
-def actualizar_catalogo_crapodinas(codigo, marca, costo, proveedor):
+def actualizar_catalogo_crapodinas(vehiculo, descripcion, codigo, precio, marca):
     try:
-        # 1. Leemos el catálogo de crapodinas
+        # 1. Leemos el catálogo actual de la hoja correspondiente
         df_crapo = conn.read(spreadsheet=SHEET_URL, worksheet="Catalogo_Crapodinas", ttl=0)
         
-        # 2. Verificamos si el código ya existe para no duplicar
-        if str(codigo) in df_crapo.astype(str).values:
-            return 
+        # 2. Armamos los nombres de columna (ej: Codigo_LUK, Precio_LUK)
+        marca_limpia = str(marca).upper()
+        col_cod = f"Codigo_{marca_limpia}"
+        col_pre = f"Precio_{marca_limpia}"
+
+        # 3. Verificamos que esas columnas existan en tu Excel antes de guardar
+        if col_cod in df_crapo.columns:
+            nueva_fila = {col: "" for col in df_crapo.columns}
+            nueva_fila["Vehiculo"] = vehiculo
+            nueva_fila["Descripcion"] = descripcion
+            nueva_fila[col_cod] = codigo
+            nueva_fila[col_pre] = precio
             
-        # 3. Guardamos con MARCA incluida
-        nueva_fila = pd.DataFrame([{
-            "Codigo": codigo,
-            "Marca": marca,        # <--- Agregamos esto
-            "Costo": costo,
-            "Proveedor": proveedor,
-            "Ultima_Actualizacion": datetime.now().strftime("%d/%m/%Y")
-        }])
-        
-        # 4. Guardamos
-        df_final = pd.concat([df_crapo, nueva_fila], ignore_index=True)
-        conn.update(spreadsheet=SHEET_URL, worksheet="Catalogo_Crapodinas", data=df_final)
-        st.toast(f"✅ Crapodina {marca} guardada: {codigo}", icon="⚙️")
+            # Unimos lo nuevo con lo viejo
+            df_final = pd.concat([df_crapo, pd.DataFrame([nueva_fila])], ignore_index=True)
+            conn.update(spreadsheet=SHEET_URL, worksheet="Catalogo_Crapodinas", data=df_final)
+            st.toast(f"✅ Catálogo Crapodinas actualizado: {marca_limpia}", icon="📒")
     except Exception as e:
         st.error(f"Error al actualizar catálogo de crapodinas: {e}")
         # 4. Guardamos
@@ -413,6 +413,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
