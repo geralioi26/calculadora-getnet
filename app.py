@@ -170,9 +170,11 @@ cliente_input = st.sidebar.text_input("Nombre del Cliente:", "Consumidor Final")
 #f_pago_input = st.sidebar.selectbox("Forma de Pago Realizada:", 
                                    #["Efectivo (Contado)", "Transferencia", "Tarjeta BNA - 1 Pago", "Tarjeta BNA - 3 Cuotas", "Tarjeta BNA - 6 Cuotas", "Combinado"])
 
-# Detalle manual, limpio para el Excel
-detalle_final = st.sidebar.text_input("📝 Descripción para Excel:", value="")
-label_item = "*Producto:*" if cat_f == "Venta" else "*Trabajo:*"
+# 1. ESTO ES NUEVO (Solo para el Excel, cortito)
+detalle_excel = st.sidebar.text_input("📝 Detalle para Excel:", value="Reparación completa")
+
+# 2. ESTO ES LO DE SIEMPRE (Para que el WhatsApp siga saliendo largo y vendedor)
+detalle_final = st.sidebar.text_area("💬 Detalle en WhatsApp:", value=sugerencia)
 
 st.sidebar.divider()
 st.sidebar.write("📸 **Uso Interno**")
@@ -385,6 +387,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
