@@ -79,29 +79,19 @@ def guardar_en_google(categoria, cliente, vehiculo, detalle, monto, costo, prove
     ]
     
     try:
+        # Leemos la hoja
         df_existente = conn.read(spreadsheet=SHEET_URL, worksheet="Ventas", ttl=0)
     except Exception as e:
         st.error(f"Error al leer hoja Ventas: {e}")
         st.stop()
     
-    # ACÁ ESTABA EL ERROR: Ahora usamos cod_kit y cod_crap en vez de 'codigo'
+    # ACÁ ESTABA EL ERROR (Línea 100):
+    # Antes decía 'codigo', ahora dice 'cod_kit, cod_crap' para llenar las dos columnas
     nuevo_reg = pd.DataFrame([[fecha_hoy, categoria, cliente, vehiculo, detalle, monto, costo, proveedor, cod_kit, cod_crap, f_pago, e_cliente, e_prov, m_forros, c_forros, costo_f, ganancia]], columns=columnas)
     
     # Guardamos
     df_actualizado = pd.concat([df_existente, nuevo_reg], ignore_index=True)
     conn.update(spreadsheet=SHEET_URL, worksheet="Ventas", data=df_actualizado)
-        
-    # Aseguramos columnas (Arreglo para que no duplique)
-    for col in columnas:
-        if col not in df_existente.columns:
-            df_existente[col] = ""
-    
-    # AGREGAMOS ganancia AL FINAL
-    nuevo_reg = pd.DataFrame([[fecha_hoy, categoria, cliente, vehiculo, detalle, monto, costo, proveedor, codigo, f_pago, e_cliente, e_prov, m_forros, c_forros, costo_f, ganancia]], columns=columnas)
-        
-    df_actualizado = pd.concat([df_existente, nuevo_reg], ignore_index=True)
-    conn.update(spreadsheet=SHEET_URL, worksheet="Ventas", data=df_actualizado)
-
 # 2. PANEL DE CARGA
 st.sidebar.header("⚙️ Configuración")
 
@@ -382,6 +372,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
