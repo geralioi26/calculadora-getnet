@@ -70,7 +70,7 @@ def actualizar_catalogo_kits(vehiculo, codigo, precio, marca):
 def actualizar_catalogo_crapodinas(vehiculo, descripcion, codigo, precio, marca):
     try:
         # 1. Leemos el catálogo
-        df_crapo = conn.read(spreadsheet=SHEET_URL, worksheet="Catalogo_Crapodinas", ttl=10)
+        df_crapo = conn.read(spreadsheet=SHEET_URL, worksheet="Catalogo_Crapodinas", ttl=5) # Bajamos a 5 seg para pruebas
         marca_limpia = str(marca).upper()
         col_cod = f"Codigo_{marca_limpia}"
         col_pre = f"Precio_{marca_limpia}"
@@ -79,48 +79,53 @@ def actualizar_catalogo_crapodinas(vehiculo, descripcion, codigo, precio, marca)
             st.warning(f"⚠️ La marca {marca_limpia} no tiene columnas.")
             return
 
-        # Buscamos si existe el combo exacto de Auto y Tipo (Mecánica/Hidráulica)
-        filtro_exacto = (df_crapo['Vehiculo'].astype(str).str.lower() == vehiculo.lower()) & \
-                        (df_crapo['Descripcion'].astype(str).str.lower() == descripcion.lower())
+        # Limpiamos los datos para comparar (sacamos espacios y pasamos a minúsculas)
+        vehiculo_limpio = str(vehiculo).strip().lower()
+        desc_limpia = str(descripcion).strip().lower()
+        # El código lo limpiamos de ".0" por si el Excel lo tomó como número
+        cod_buscado = str(codigo).split('.')[0].strip()
+
+        # --- BUSCADORES ROBUSTOS ---
+        # 1. ¿Existe el auto con ese tipo?
+        filtro_exacto = (df_crapo['Vehiculo'].astype(str).str.strip().str.lower() == vehiculo_limpio) & \
+                        (df_crapo['Descripcion'].astype(str).str.strip().str.lower() == desc_limpia)
         
-        # Buscamos si el código ya existe para equivalencias
-        filtro_codigo = df_crapo[col_cod].astype(str) == str(codigo)
+        # 2. ¿Existe el código en esa marca? (Limpiamos la columna de códigos también)
+        codigos_col = df_crapo[col_cod].astype(str).str.split('.').str[0].str.strip()
+        filtro_codigo = codigos_col == cod_buscado
 
         if filtro_exacto.any():
-            # CASO A: El auto ya existe. Actualizamos esa fila.
+            # CASO A: El auto ya está. Actualizamos esa fila.
             idx = df_crapo.index[filtro_exacto][0]
             df_crapo.at[idx, col_cod] = codigo
             df_crapo.at[idx, col_pre] = precio
-            msg = f"✅ Actualizado: {vehiculo} ({marca_limpia})"
+            msg = f"✅ Datos actualizados: {vehiculo} ({marca_limpia})"
 
         elif filtro_codigo.any():
-            # CASO B: El código ya existe en otro auto.
+            # CASO B: El código ya existe (Equivalencia). Unimos nombres.
             idx = df_crapo.index[filtro_codigo][0]
-            vehiculo_actual = str(df_crapo.at[idx, 'Vehiculo'])
-            if vehiculo.lower() not in vehiculo_actual.lower():
-                df_crapo.at[idx, 'Vehiculo'] = f"{vehiculo_actual} / {vehiculo}"
+            v_actual = str(df_crapo.at[idx, 'Vehiculo'])
+            if vehiculo_limpio not in v_actual.lower():
+                df_crapo.at[idx, 'Vehiculo'] = f"{v_actual} / {vehiculo}"
             df_crapo.at[idx, col_pre] = precio
             msg = f"🔗 Equivalencia: {codigo} ahora también en {vehiculo}"
 
         else:
-            # CASO C: Todo nuevo. Acá sí creamos la fila nueva.
-            nueva_fila_datos = {col: "" for col in df_crapo.columns}
-            nueva_fila_datos["Vehiculo"] = vehiculo
-            nueva_fila_datos["Descripcion"] = descripcion
-            nueva_fila_datos[col_cod] = codigo
-            nueva_fila_datos[col_pre] = precio
-            
-            # Unimos la fila nueva al DataFrame principal inmediatamente
-            df_crapo = pd.concat([df_crapo, pd.DataFrame([nueva_fila_datos])], ignore_index=True)
+            # CASO C: Todo nuevo.
+            nueva_fila = {col: "" for col in df_crapo.columns}
+            nueva_fila["Vehiculo"] = vehiculo
+            nueva_fila["Descripcion"] = descripcion
+            nueva_fila[col_cod] = codigo
+            nueva_fila[col_pre] = precio
+            df_crapo = pd.concat([df_crapo, pd.DataFrame([nueva_fila])], ignore_index=True)
             msg = f"✨ Nuevo en catálogo: {vehiculo}"
 
-        # 2. GUARDADO FINAL (Usamos siempre df_crapo que ya está actualizado)
+        # 2. GUARDADO
         conn.update(spreadsheet=SHEET_URL, worksheet="Catalogo_Crapodinas", data=df_crapo)
         st.toast(msg, icon="⚙️")
 
     except Exception as e:
         st.error(f"Error en catálogo: {e}")
-
         # 3. Guardamos en el Excel
         conn.update(spreadsheet=SHEET_URL, worksheet="Catalogo_Crapodinas", data=df_crapo)
         st.toast(msg, icon="⚙️")
@@ -455,6 +460,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
