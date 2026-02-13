@@ -228,7 +228,15 @@ estado_p_prov = st.sidebar.selectbox(
         ["Pagado", "Cuenta Corriente", "N/A"],
         index=0
 )
-        
+
+# --- LÓGICA PARA SEPARAR CÓDIGOS (ESTO FALTABA) ---
+if cat_f == "Reparación":
+    cod_kit_final = ""            # Si es reparación, la columna Kit queda vacía
+    cod_crap_final = crap_codigo  # Y usamos el código de la Crapodina
+else:
+    cod_kit_final = codigo_manual # Si es venta, usamos el código del Kit
+    cod_crap_final = ""           # Y la columna Crapodina queda vacía
+
 if st.sidebar.button("💾 GUARDAR VENTA"):
     # Cambiamos 'detalle_final' por 'detalle_excel'
     guardar_en_google(cat_f, cliente_input, vehiculo_input, detalle_excel, monto_limpio, precio_compra, proveedor_input, cod_kit_final, cod_crap_final, f_pago_input, estado_cliente, estado_p_prov, m_forros, forros_codigo, forros_costo, ganancia)
@@ -387,5 +395,6 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
