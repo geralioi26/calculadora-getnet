@@ -157,6 +157,8 @@ elif "Reparación" in tipo_item:
         # --- CAMPOS DE COSTO INTERNO (NUEVO) ---
         crap_codigo = st.sidebar.text_input("Código de Crapodina:", "")
         crap_costo = st.sidebar.number_input("Costo de Crapodina ($):", min_value=0, value=0)
+        # Esto te va a permitir elegir antes de guardar
+        tipo_crap = st.sidebar.selectbox("⚙️ Tipo de Crapodina:", ["Hidráulica", "Mecánica", "Común"])
 
         # --- DATOS DE LOS FORROS ---
         m_forros = st.sidebar.selectbox("Marca de Forros:", ["IAR", "Fras-le", "Termolite", "Otro"])
@@ -416,6 +418,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
