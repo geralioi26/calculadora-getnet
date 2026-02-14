@@ -324,12 +324,16 @@ if st.sidebar.button("💾 GUARDAR VENTA"):
     guardar_en_google(cat_f, cliente_input, vehiculo_input, detalle_excel, monto_limpio, precio_compra, proveedor_input, cod_kit_final, cod_crap_final, f_pago_input, estado_cliente, estado_p_prov, m_forros, forros_codigo, forros_costo, ganancia)
     
     # 2. NUEVO: Si hay código de Kit, lo guarda en el catálogo de Kits
-    # 2. ACTUALIZADO: Guarda en Catálogo de Kits con Marca y Vehículo
+   # 2. ACTUALIZADO: Guarda en Catálogo de Kits (Versión corregida)
     if cod_kit_final:
-        # Elegimos la primera marca seleccionada para el catálogo
-        marca_kit_elegida = m_kit[0] if m_kit else "OTRA"
-        # Mandamos los 5 datos: Vehiculo, Descripción, Código, Precio (monto_limpio) y Marca
-        actualizar_catalogo_kits(vehiculo_input, "Kit de Embrague", cod_kit_final, monto_limpio, marca_kit_elegida)
+        # Esto evita que lea solo la primera letra 'L'
+        if isinstance(m_kit, list) and len(m_kit) > 0:
+            marca_kit_final = m_kit[0]
+        else:
+            marca_kit_final = m_kit if m_kit else "OTRA"
+        
+        # Ahora sí, mandamos la marca completa (ej: LUK)
+        actualizar_catalogo_kits(vehiculo_input, "Kit de Embrague", cod_kit_final, monto_limpio, marca_kit_final)
     
     # 3. ACTUALIZADO: Guarda en Catálogo de Crapodinas con Marca y Vehículo
     if cod_crap_final:
@@ -494,6 +498,7 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
 
 
