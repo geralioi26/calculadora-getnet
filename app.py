@@ -29,12 +29,12 @@ except Exception as e:
 
 # --- CARGA DE CATÁLOGOS ---
 try:
-    df = conn.read(spreadsheet=SHEET_URL, worksheet="Ventas", ttl=0)
-    df_kits = conn.read(spreadsheet=SHEET_URL, worksheet="Catalogo_Kits", ttl=0)
-    df_crapo = conn.read(spreadsheet=SHEET_URL, worksheet="Catalogo_Crapodinas", ttl=0)
-    df_distri = conn.read(spreadsheet=SHEET_URL, worksheet="Catalogo_Distribucion", ttl=0)
-except:
-    st.warning("⚠️ Todavía no pude leer los catálogos. (Si recién creaste las hojas, dame unos segundos)")
+    df = conn.read(spreadsheet=SHEET_URL, worksheet="Ventas", ttl=10)
+    df_kits = conn.read(spreadsheet=SHEET_URL, worksheet="Catalogo_Kits", ttl=10)
+    df_crapo = conn.read(spreadsheet=SHEET_URL, worksheet="Catalogo_Crapodinas", ttl=10)
+    df_distri = conn.read(spreadsheet=SHEET_URL, worksheet="Catalogo_Distribucion", ttl=10)
+except Exception as e:
+    st.warning(f"⚠️ Error al leer los catálogos: {e}")
 
 # --- FUNCIÓN AUXILIAR: GUARDAR EN CATÁLOGO ---
 def actualizar_catalogo_kits(vehiculo, descripcion, codigo, precio, marca):
@@ -389,3 +389,4 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
