@@ -346,7 +346,7 @@ st.link_button("🟢 ENVIAR PRESUPUESTO POR WHATSAPP", link_wa)
 st.divider()
 st.subheader("📋 Últimos Movimientos")
 try:
-    df_ver = conn.read(spreadsheet=SHEET_URL, worksheet="Ventas", ttl=0)
+    df_ver = conn.read(spreadsheet=SHEET_URL, worksheet="Ventas", ttl=10)
     if not df_ver.empty:
         st.dataframe(df_ver.tail(5)[::-1], use_container_width=True)
     else:
@@ -389,4 +389,5 @@ if busqueda:
             st.dataframe(resultados, hide_index=True)
         else:
             st.info("Nada en Distribución todavía.")
+
 
